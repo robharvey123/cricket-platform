@@ -2,18 +2,23 @@ import Image, { type ImageProps } from "next/image";
 import { Button } from "@repo/ui/button";
 import styles from "./page.module.css";
 
-type Props = Omit<ImageProps, "src"> & {
+type Props = Omit<ImageProps, "src" | "alt"> & {
   srcLight: string;
   srcDark: string;
+  alt: string;
 };
 
 const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
+  const { srcLight, srcDark, alt, ...rest } = props;
+
+  if (!alt) {
+    console.error("ThemeImage: alt text is required for accessibility");
+  }
 
   return (
     <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
+      <Image {...rest} src={srcLight} alt={alt} className="imgLight" />
+      <Image {...rest} src={srcDark} alt={alt} className="imgDark" />
     </>
   );
 };
@@ -63,8 +68,11 @@ export default function Home() {
             Read our docs
           </a>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
+        <Button
+          className={styles.secondary}
+          onClick={() => console.log("Button clicked in web app")}
+        >
+          Click me
         </Button>
       </main>
       <footer className={styles.footer}>
