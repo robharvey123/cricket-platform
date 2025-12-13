@@ -1,110 +1,61 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@repo/ui/button";
-import styles from "./page.module.css";
+import { createClient } from '../lib/supabase/server'
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
-type Props = Omit<ImageProps, "src" | "alt"> & {
-  srcLight: string;
-  srcDark: string;
-  alt: string;
-};
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, alt, ...rest } = props;
-
-  if (!alt) {
-    console.error("ThemeImage: alt text is required for accessibility");
+  // If user is logged in, redirect to admin
+  if (user) {
+    redirect('/admin')
   }
 
   return (
-    <>
-      <Image {...rest} src={srcLight} alt={alt} className="imgLight" />
-      <Image {...rest} src={srcDark} alt={alt} className="imgDark" />
-    </>
-  );
-};
-
-export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
-        </div>
-        <Button
-          className={styles.secondary}
-          onClick={() => console.log("Button clicked in web app")}
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px'
+    }}>
+      <div style={{
+        textAlign: 'center',
+        color: 'white',
+        maxWidth: '600px'
+      }}>
+        <h1 style={{
+          fontSize: '48px',
+          fontWeight: 'bold',
+          marginBottom: '16px'
+        }}>
+          Cricket Platform
+        </h1>
+        <p style={{
+          fontSize: '20px',
+          marginBottom: '32px',
+          opacity: 0.9
+        }}>
+          Manage your cricket club with ease. Track players, matches, and performance.
+        </p>
+        <Link
+          href="/auth/signin"
+          style={{
+            display: 'inline-block',
+            padding: '14px 32px',
+            background: 'white',
+            color: '#667eea',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            fontSize: '16px',
+            fontWeight: '600',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+          }}
         >
-          Click me
-        </Button>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
-      </footer>
+          Sign In
+        </Link>
+      </div>
     </div>
-  );
+  )
 }
