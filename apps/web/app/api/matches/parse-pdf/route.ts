@@ -1,0 +1,144 @@
+import { NextRequest, NextResponse } from 'next/server'
+import Anthropic from '@anthropic-ai/sdk'
+import pdf from 'pdf-parse/lib/pdf-parse'
+
+export async function POST(request: NextRequest) {
+  try {
+    // Get the uploaded PDF file
+    const formData = await request.formData()
+    const file = formData.get('pdf') as File
+
+    if (!file) {
+      return NextResponse.json(
+        { error: 'No PDF file uploaded' },
+        { status: 400 }
+      )
+    }
+
+    // Convert file to buffer
+    const buffer = Buffer.from(await file.arrayBuffer())
+
+    // Extract text from PDF
+    const pdfData = await pdf(buffer)
+    const pdfText = pdfData.text
+
+    if (!pdfText || pdfText.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Could not extract text from PDF' },
+        { status: 400 }
+      )
+    }
+
+    // Initialize Anthropic client
+    const apiKey = process.env.ANTHROPIC_API_KEY
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'Anthropic API key not configured. Please add ANTHROPIC_API_KEY to your .env.local file.' },
+        { status: 500 }
+      )
+    }
+
+    const anthropic = new Anthropic({
+      apiKey: apiKey,
+    })
+
+    // Create the parsing prompt
+    const prompt = `You are a cricket scorecard parser. Extract all match data from the following cricket scorecard text and return it as a JSON object.
+
+IMPORTANT: The JSON must match this exact structure:
+
+{
+  "match": {
+    "match_date": "YYYY-MM-DD",
+    "opponent_name": "string",
+    "venue": "string or null",
+    "match_type": "league" | "cup" | "friendly",
+    "result": "won" | "lost" | "tied" | "draw" | "abandoned"
+  },
+  "innings": [
+    {
+      "innings_number": 1 or 2,
+      "batting_team": "home" or "away",
+      "total_runs": number,
+      "wickets": number,
+      "overs": number (as decimal, e.g., 41.5),
+      "extras": number,
+      "batting_cards": [
+        {
+          "player_name": "First Last",
+          "position": number (1-11),
+          "dismissal_type": "caught" | "bowled" | "lbw" | "run out" | "stumped" | null if not out,
+          "dismissal_text": "string describing full dismissal",
+          "is_out": boolean,
+          "runs": number,
+          "balls_faced": number,
+          "fours": number,
+          "sixes": number
+        }
+      ],
+      "bowling_cards": [
+        {
+          "player_name": "First Last",
+          "overs": number (as decimal),
+          "maidens": number,
+          "runs_conceded": number,
+          "wickets": number,
+          "wides": number,
+          "no_balls": number
+        }
+      ]
+    }
+  ]
+}
+
+Guidelines:
+- Extract player names carefully (first and last name)
+- For batting_team, use "home" if it's your team batting, "away" if it's the opponent
+- Parse dismissal types accurately (caught, bowled, lbw, run out, stumped, etc.)
+- If a player is "not out", set dismissal_type to null and is_out to false
+- Extract all statistics accurately (runs, balls, 4s, 6s, overs, maidens, wickets, etc.)
+- Overs should be decimal (e.g., 41.5 means 41 overs and 5 balls)
+- Extract extras as the total number
+- For match_type, infer from the context (league/cup/friendly)
+- For result, extract who won and how (e.g., "won", "lost")
+
+Here is the scorecard text to parse:
+
+${pdfText}
+
+Return ONLY the JSON object, no additional text or explanation.`
+
+    // Call Claude API
+    const message = await anthropic.messages.create({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 4096,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    })
+
+    // Extract the JSON from Claude's response
+    const responseText = message.content[0].type === 'text'
+      ? message.content[0].text
+      : ''
+
+    // Parse the JSON
+    const parsedData = JSON.parse(responseText)
+
+    return NextResponse.json(parsedData)
+
+  } catch (error: any) {
+    console.error('PDF parsing error:', error)
+    return NextResponse.json(
+      {
+        error: 'Failed to parse PDF',
+        details: error.message,
+      },
+      { status: 500 }
+    )
+  }
+}

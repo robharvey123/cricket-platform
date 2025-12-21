@@ -44,8 +44,22 @@ export default async function MatchesPage() {
             Import and manage match data
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <CreateSampleButton />
+          <Link
+            href="/admin/matches/import-pdf"
+            style={{
+              padding: '10px 20px',
+              background: '#7c3aed',
+              color: 'white',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            📄 Import from PDF
+          </Link>
           <Link
             href="/admin/matches/import"
             style={{
