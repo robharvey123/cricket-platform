@@ -1,16 +1,4 @@
-import { createClient } from '../lib/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-
-export default async function Home() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-
-  // If user is logged in, redirect to admin
-  if (user) {
-    redirect('/admin')
-  }
-
+export default function Home() {
   return (
     <div style={{
       minHeight: '100vh',
@@ -39,7 +27,7 @@ export default async function Home() {
         }}>
           Manage your cricket club with ease. Track players, matches, and performance.
         </p>
-        <Link
+        <a
           href="/auth/signin"
           style={{
             display: 'inline-block',
@@ -54,7 +42,7 @@ export default async function Home() {
           }}
         >
           Sign In
-        </Link>
+        </a>
       </div>
     </div>
   )
