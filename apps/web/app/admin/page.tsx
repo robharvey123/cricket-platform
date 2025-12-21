@@ -31,6 +31,11 @@ export default async function AdminDashboard() {
     .select('*', { count: 'exact', head: true })
     .eq('club_id', userRole?.club_id)
 
+  const { count: teamsCount } = await supabase
+    .from('teams')
+    .select('*', { count: 'exact', head: true })
+    .eq('club_id', userRole?.club_id)
+
   return (
     <div>
       <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
@@ -62,9 +67,9 @@ export default async function AdminDashboard() {
           description="Active and past seasons"
         />
         <StatCard
-          title="Role"
-          value={role === 'org_admin' ? 'Admin' : 'Member'}
-          description="Your access level"
+          title="Teams"
+          value={teamsCount || 0}
+          description="Teams across all seasons"
         />
       </div>
 
