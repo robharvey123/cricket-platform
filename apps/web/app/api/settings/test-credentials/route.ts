@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PlayCricketClient } from '@/lib/play-cricket/client'
+import { PlayCricketClient } from '../../../../lib/play-cricket/client'
 
 export async function POST(request: NextRequest) {
   try {

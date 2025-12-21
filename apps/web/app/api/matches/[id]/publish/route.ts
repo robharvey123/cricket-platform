@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { PlayCricketTransformer } from '@/lib/play-cricket/transformer'
+import { createClient } from '../../../../../lib/supabase/server'
+import { PlayCricketTransformer } from '../../../../../lib/play-cricket/transformer'
 
 export async function POST(
   request: NextRequest,
