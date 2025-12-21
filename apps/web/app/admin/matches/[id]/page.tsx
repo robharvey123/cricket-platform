@@ -25,13 +25,25 @@ export default async function MatchDetailPage({ params }: { params: { id: string
     notFound()
   }
 
-  // Fetch innings with batting and bowling cards
+  // Fetch innings with batting and bowling cards (with player names)
   const { data: innings } = await supabase
     .from('innings')
     .select(`
       *,
-      batting_cards (*),
-      bowling_cards (*)
+      batting_cards (
+        *,
+        players (
+          first_name,
+          last_name
+        )
+      ),
+      bowling_cards (
+        *,
+        players (
+          first_name,
+          last_name
+        )
+      )
     `)
     .eq('match_id', matchId)
     .order('innings_number')
@@ -60,12 +72,12 @@ export default async function MatchDetailPage({ params }: { params: { id: string
             </Link>
           </div>
           <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-            {match.teams?.name} vs {match.opponent}
+            {match.teams?.name} vs {match.opponent_name}
           </h1>
           <div style={{ color: '#6b7280', fontSize: '14px' }}>
             <span>{new Date(match.match_date).toLocaleDateString()}</span>
             {match.venue && <span> • {match.venue}</span>}
-            {match.competition && <span> • {match.competition}</span>}
+            {match.match_type && <span> • {match.match_type}</span>}
           </div>
           <div style={{ marginTop: '8px' }}>
             <span style={{
@@ -165,9 +177,9 @@ export default async function MatchDetailPage({ params }: { params: { id: string
                   {inn.batting_team} - Innings {inn.innings_number}
                 </h3>
                 <p style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '8px' }}>
-                  {inn.total_runs}/{inn.total_wickets}
+                  {inn.total_runs}/{inn.wickets}
                   <span style={{ fontSize: '16px', fontWeight: 'normal', color: '#6b7280', marginLeft: '8px' }}>
-                    ({inn.overs}.{inn.balls} overs)
+                    ({inn.overs} overs)
                   </span>
                 </p>
               </div>
@@ -191,13 +203,14 @@ export default async function MatchDetailPage({ params }: { params: { id: string
                   <tbody>
                     {inn.batting_cards?.map((card: any, idx: number) => (
                       <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '12px 0', fontWeight: '500' }}>{card.player_name}</td>
+                        <td style={{ padding: '12px 0', fontWeight: '500' }}>
+                          {card.players?.first_name} {card.players?.last_name}
+                        </td>
                         <td style={{ padding: '12px 0', fontSize: '12px', color: '#6b7280' }}>
-                          {card.how_out}
-                          {card.bowler_name && ` b ${card.bowler_name}`}
+                          {card.is_out ? card.dismissal_type : 'not out'}
                         </td>
                         <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.runs}</td>
-                        <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.balls}</td>
+                        <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.balls_faced}</td>
                         <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.fours}</td>
                         <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.sixes}</td>
                       </tr>
@@ -206,10 +219,10 @@ export default async function MatchDetailPage({ params }: { params: { id: string
                   <tfoot>
                     <tr style={{ borderTop: '2px solid #e5e7eb', fontWeight: '600' }}>
                       <td colSpan={2} style={{ padding: '12px 0' }}>
-                        Extras ({inn.extras_byes}b {inn.extras_leg_byes}lb {inn.extras_wides}w {inn.extras_no_balls}nb {inn.extras_penalties}p)
+                        Extras
                       </td>
                       <td style={{ padding: '12px 0', textAlign: 'right' }}>
-                        {inn.extras_byes + inn.extras_leg_byes + inn.extras_wides + inn.extras_no_balls + inn.extras_penalties}
+                        {inn.extras || 0}
                       </td>
                       <td colSpan={3}></td>
                     </tr>
@@ -239,7 +252,9 @@ export default async function MatchDetailPage({ params }: { params: { id: string
                         const economy = card.overs > 0 ? (card.runs_conceded / card.overs).toFixed(2) : '0.00'
                         return (
                           <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                            <td style={{ padding: '12px 0', fontWeight: '500' }}>{card.player_name}</td>
+                            <td style={{ padding: '12px 0', fontWeight: '500' }}>
+                              {card.players?.first_name} {card.players?.last_name}
+                            </td>
                             <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.overs}</td>
                             <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.maidens}</td>
                             <td style={{ padding: '12px 0', textAlign: 'right' }}>{card.runs_conceded}</td>
