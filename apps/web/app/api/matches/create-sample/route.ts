@@ -79,9 +79,10 @@ export async function POST(request: NextRequest) {
         season_id: season.id,
         team_id: team.id,
         match_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
-        opponent: 'Riverside CC',
+        opponent_name: 'Riverside CC',
         venue: 'Home Ground',
-        result: 'Won by 45 runs',
+        match_type: 'league',
+        result: 'won',
         source: 'manual',
         published: false,
       })
@@ -107,18 +108,11 @@ export async function POST(request: NextRequest) {
       .insert({
         match_id: match.id,
         innings_number: 1,
-        batting_team: 'Your Team',
+        batting_team: 'home',
         total_runs: 185,
-        total_wickets: 7,
-        overs: 40,
-        balls: 0,
-        extras_byes: 4,
-        extras_leg_byes: 2,
-        extras_wides: 8,
-        extras_no_balls: 3,
-        extras_penalties: 0,
-        declared: false,
-        forfeited: false,
+        wickets: 7,
+        overs: 40.0,
+        extras: 17,
       })
       .select('id')
       .single()
@@ -138,12 +132,12 @@ export async function POST(request: NextRequest) {
 
     // Create sample batting cards for first 6 players
     const battingData = [
-      { runs: 45, balls: 38, fours: 6, sixes: 1, how_out: 'caught', position: 1 },
-      { runs: 62, balls: 51, fours: 8, sixes: 2, how_out: 'caught', position: 2 },
-      { runs: 0, balls: 3, fours: 0, sixes: 0, how_out: 'bowled', position: 3 }, // Duck!
-      { runs: 28, balls: 34, fours: 3, sixes: 0, how_out: 'lbw', position: 4 },
-      { runs: 15, balls: 22, fours: 2, sixes: 0, how_out: 'not out', position: 5 },
-      { runs: 23, balls: 18, fours: 4, sixes: 0, how_out: 'run out', position: 6 },
+      { runs: 45, balls_faced: 38, fours: 6, sixes: 1, dismissal_type: 'caught', is_out: true, position: 1 },
+      { runs: 62, balls_faced: 51, fours: 8, sixes: 2, dismissal_type: 'caught', is_out: true, position: 2 },
+      { runs: 0, balls_faced: 3, fours: 0, sixes: 0, dismissal_type: 'bowled', is_out: true, position: 3 }, // Duck!
+      { runs: 28, balls_faced: 34, fours: 3, sixes: 0, dismissal_type: 'lbw', is_out: true, position: 4 },
+      { runs: 15, balls_faced: 22, fours: 2, sixes: 0, dismissal_type: null, is_out: false, position: 5 }, // Not out
+      { runs: 23, balls_faced: 18, fours: 4, sixes: 0, dismissal_type: 'run out', is_out: true, position: 6 },
     ]
 
     for (let i = 0; i < Math.min(6, players.length); i++) {
@@ -154,11 +148,12 @@ export async function POST(request: NextRequest) {
         innings_id: innings.id,
         match_id: match.id,
         player_id: player.id,
-        player_name: `${player.first_name} ${player.last_name}`,
         position: batting.position,
-        how_out: batting.how_out,
+        dismissal_type: batting.dismissal_type,
+        dismissal_text: batting.dismissal_type,
+        is_out: batting.is_out,
         runs: batting.runs,
-        balls: batting.balls,
+        balls_faced: batting.balls_faced,
         fours: batting.fours,
         sixes: batting.sixes,
         derived: false,
@@ -167,10 +162,10 @@ export async function POST(request: NextRequest) {
 
     // Create sample bowling cards for 4 players
     const bowlingData = [
-      { overs: 8, maidens: 2, runs: 28, wickets: 3 },
-      { overs: 8, maidens: 1, runs: 32, wickets: 2 },
-      { overs: 8, maidens: 0, runs: 45, wickets: 1 },
-      { overs: 8, maidens: 1, runs: 24, wickets: 2 },
+      { overs: 8.0, maidens: 2, runs_conceded: 28, wickets: 3 },
+      { overs: 8.0, maidens: 1, runs_conceded: 32, wickets: 2 },
+      { overs: 8.0, maidens: 0, runs_conceded: 45, wickets: 1 },
+      { overs: 8.0, maidens: 1, runs_conceded: 24, wickets: 2 },
     ]
 
     for (let i = 0; i < Math.min(4, players.length); i++) {
@@ -181,10 +176,9 @@ export async function POST(request: NextRequest) {
         innings_id: innings.id,
         match_id: match.id,
         player_id: player.id,
-        player_name: `${player.first_name} ${player.last_name}`,
         overs: bowling.overs,
         maidens: bowling.maidens,
-        runs_conceded: bowling.runs,
+        runs_conceded: bowling.runs_conceded,
         wickets: bowling.wickets,
         wides: 0,
         no_balls: 0,
