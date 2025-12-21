@@ -31,13 +31,15 @@ export async function POST(request: NextRequest) {
 
     if (!season) {
       return NextResponse.json(
-        { error: 'Please create a season first' },
+        { error: 'Please create a season first. Go to Seasons → Add Season.' },
         { status: 400 }
       )
     }
 
+    console.log('Found season:', season.id)
+
     // Get first team
-    const { data: team } = await supabase
+    const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('id')
       .eq('club_id', userRole.club_id)
@@ -46,21 +48,25 @@ export async function POST(request: NextRequest) {
 
     if (!team) {
       return NextResponse.json(
-        { error: 'Please create a team first' },
+        { error: 'Please create a team first. Go to Teams → Add Team.' },
         { status: 400 }
       )
     }
 
+    console.log('Found team:', team.id)
+
     // Get all players for this club
-    const { data: players } = await supabase
+    const { data: players, error: playersError } = await supabase
       .from('players')
       .select('id, first_name, last_name')
       .eq('club_id', userRole.club_id)
       .limit(11)
 
+    console.log('Found players:', players?.length)
+
     if (!players || players.length < 5) {
       return NextResponse.json(
-        { error: 'Please create at least 5 players first' },
+        { error: `Please create at least 5 players first. You currently have ${players?.length || 0} players. Go to Players → Add Player.` },
         { status: 400 }
       )
     }
