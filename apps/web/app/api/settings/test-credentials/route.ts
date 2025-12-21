@@ -31,10 +31,30 @@ export async function POST(request: NextRequest) {
       })
     } catch (apiError: any) {
       // Play-Cricket API error - likely invalid credentials
+      console.error('Play-Cricket API Error:', {
+        message: apiError.message,
+        code: apiError.code,
+        siteId: site_id
+      })
+
+      // Provide helpful error message
+      let errorMessage = 'Could not connect to Play-Cricket API. '
+
+      if (apiError.message?.includes('Not Found') || apiError.code === 'HTTP_404') {
+        errorMessage += `Site ID "${site_id}" was not found. Please verify:
+• Your Site ID is correct (check your Play-Cricket admin panel)
+• Your club has an active Play-Cricket account
+• The Site ID format is correct (should be a number)`
+      } else if (apiError.code === 'HTTP_401' || apiError.code === 'HTTP_403') {
+        errorMessage += 'Invalid API Token or access denied. Please check your API token is active.'
+      } else {
+        errorMessage += apiError.message || 'Unknown error occurred'
+      }
+
       return NextResponse.json(
         {
-          error: `Play-Cricket API error: ${apiError.message || 'Invalid credentials or API access denied'}`,
-          details: apiError.code
+          error: errorMessage,
+          technicalDetails: `${apiError.code || 'UNKNOWN'}: ${apiError.message}`
         },
         { status: 400 }
       )
