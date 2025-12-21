@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
-import pdf from 'pdf-parse'
 
 export async function POST(request: NextRequest) {
   try {
+    // Dynamic imports for packages that don't bundle well
+    const Anthropic = (await import('@anthropic-ai/sdk')).default
+    const pdf = (await import('pdf-parse')).default
+
     // Get the uploaded PDF file
     const formData = await request.formData()
     const file = formData.get('pdf') as File
