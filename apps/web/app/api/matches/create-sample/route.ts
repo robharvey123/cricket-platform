@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
         match_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 7 days ago
         opponent: 'Riverside CC',
         venue: 'Home Ground',
-        competition: 'League Match',
         result: 'Won by 45 runs',
         source: 'manual',
         published: false,
