@@ -10,11 +10,24 @@ const nextConfig = {
   reactStrictMode: true,
 
   // Webpack configuration for monorepo module resolution
-  webpack: (config) => {
-    // Add root node_modules to module resolution
+  webpack: (config, { isServer }) => {
+    // Add root node_modules to module resolution paths
     config.resolve.modules.push(path.resolve(__dirname, '../../node_modules'));
+    config.resolve.modules.push(path.resolve(__dirname, 'node_modules'));
+
+    // Configure fallback for node modules
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+      };
+    }
+
     return config;
   },
+
+  // Server-side external packages
+  serverExternalPackages: ['@anthropic-ai/sdk', 'pdf-parse'],
 
   // Security headers
   async headers() {
