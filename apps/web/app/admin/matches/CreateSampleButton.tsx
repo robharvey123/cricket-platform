@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 export function CreateSampleButton() {
   const [creating, setCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<any>(null)
   const router = useRouter()
 
   const handleCreate = async () => {
@@ -20,14 +20,17 @@ export function CreateSampleButton() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to create sample match')
+        // Store the full error data object
+        setError(data)
+        setCreating(false)
+        return
       }
 
       // Redirect to the new match
       router.push(`/admin/matches/${data.matchId}`)
       router.refresh()
     } catch (err: any) {
-      setError(err.message)
+      setError({ error: err.message })
       setCreating(false)
     }
   }
@@ -54,16 +57,50 @@ export function CreateSampleButton() {
         <div style={{
           position: 'absolute',
           marginTop: '8px',
-          padding: '8px 12px',
+          padding: '12px',
           background: '#fee2e2',
           border: '1px solid #fecaca',
           borderRadius: '6px',
           color: '#991b1b',
           fontSize: '12px',
-          maxWidth: '300px',
-          zIndex: 10
+          maxWidth: '500px',
+          maxHeight: '400px',
+          overflowY: 'auto',
+          zIndex: 10,
+          fontFamily: 'monospace'
         }}>
-          {error}
+          <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+            {error.error || 'Error'}
+          </div>
+          {error.details && (
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Details:</strong> {error.details}
+            </div>
+          )}
+          {error.code && (
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Code:</strong> {error.code}
+            </div>
+          )}
+          {error.hint && (
+            <div style={{ marginBottom: '8px' }}>
+              <strong>Hint:</strong> {error.hint}
+            </div>
+          )}
+          {error.stack && (
+            <div style={{
+              marginTop: '12px',
+              padding: '8px',
+              background: '#fef2f2',
+              borderRadius: '4px',
+              fontSize: '10px',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word'
+            }}>
+              <strong>Stack:</strong><br />
+              {error.stack}
+            </div>
+          )}
         </div>
       )}
     </div>
