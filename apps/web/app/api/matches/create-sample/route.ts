@@ -90,8 +90,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (matchError || !match) {
+      console.error('Match creation error:', matchError)
       return NextResponse.json(
-        { error: 'Failed to create match' },
+        {
+          error: 'Failed to create match',
+          details: matchError?.message || 'Unknown error',
+          hint: matchError?.hint,
+          code: matchError?.code
+        },
         { status: 500 }
       )
     }
@@ -119,8 +125,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (inningsError || !innings) {
+      console.error('Innings creation error:', inningsError)
       return NextResponse.json(
-        { error: 'Failed to create innings' },
+        {
+          error: 'Failed to create innings',
+          details: inningsError?.message || 'Unknown error',
+          hint: inningsError?.hint,
+          code: inningsError?.code
+        },
         { status: 500 }
       )
     }
@@ -189,7 +201,11 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Create sample match error:', error)
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
+      {
+        error: error.message || 'Internal server error',
+        details: error.toString(),
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     )
   }
