@@ -42,6 +42,7 @@ export default async function AdminLayout({
           <NavLink href="/admin/leaderboard">Leaderboard</NavLink>
           <NavLink href="/admin/stats">📊 Analytics</NavLink>
           <NavLink href="/admin/scoring">Scoring Config</NavLink>
+          <NavLink href="/admin/settings">⚙️ Settings</NavLink>
 
           <div style={{
             borderTop: '1px solid #374151',
