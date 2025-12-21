@@ -40,6 +40,7 @@ export default async function AdminLayout({
           <NavLink href="/admin/teams">Teams</NavLink>
           <NavLink href="/admin/matches">Matches</NavLink>
           <NavLink href="/admin/leaderboard">Leaderboard</NavLink>
+          <NavLink href="/admin/stats">📊 Analytics</NavLink>
           <NavLink href="/admin/scoring">Scoring Config</NavLink>
 
           <div style={{
