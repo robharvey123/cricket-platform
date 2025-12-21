@@ -1,7 +1,16 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Enable strict mode for better error detection
   reactStrictMode: true,
+
+  // Webpack configuration for monorepo module resolution
+  webpack: (config) => {
+    // Add root node_modules to module resolution
+    config.resolve.modules.push(path.resolve(__dirname, '../../node_modules'));
+    return config;
+  },
 
   // Security headers
   async headers() {
