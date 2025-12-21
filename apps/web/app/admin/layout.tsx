@@ -1,6 +1,7 @@
 import { createClient } from '../../lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { SignOutButton } from '../../components/SignOutButton'
 
 export default async function AdminLayout({
   children,
@@ -46,23 +47,7 @@ export default async function AdminLayout({
             margin: '16px 0'
           }} />
 
-          <form action="/auth/signout" method="post">
-            <button
-              type="submit"
-              style={{
-                width: '100%',
-                padding: '12px 24px',
-                background: 'transparent',
-                color: '#9ca3af',
-                border: 'none',
-                fontSize: '14px',
-                textAlign: 'left',
-                cursor: 'pointer'
-              }}
-            >
-              Sign Out
-            </button>
-          </form>
+          <SignOutButton />
         </nav>
 
         <div style={{
