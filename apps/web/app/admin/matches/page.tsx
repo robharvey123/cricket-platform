@@ -1,6 +1,7 @@
 import { createClient } from '../../../lib/supabase/server'
 import Link from 'next/link'
 
+import { CreateSampleButton } from './CreateSampleButton'
 export default async function MatchesPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -44,6 +45,7 @@ export default async function MatchesPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
+          <CreateSampleButton />
           <Link
             href="/admin/matches/import"
             style={{
