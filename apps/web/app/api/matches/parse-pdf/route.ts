@@ -1,20 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRequire } from 'module'
+import { fileURLToPath } from 'url'
 
 export async function POST(request: NextRequest) {
   try {
     console.log('=== PDF Parse Request Started ===')
 
-    // Dynamic imports for packages that don't bundle well
-    console.log('Step 1: Loading Anthropic SDK...')
-    const Anthropic = (await import('@anthropic-ai/sdk')).default
+    // Use createRequire to load packages from node_modules at runtime (bypasses webpack)
+    console.log('Step 1: Creating require function...')
+    const __filename = fileURLToPath(import.meta.url)
+    const require = createRequire(__filename)
+    console.log('✓ Require function created')
+
+    console.log('Step 2: Loading Anthropic SDK...')
+    const Anthropic = require('@anthropic-ai/sdk').default
     console.log('✓ Anthropic SDK loaded successfully')
 
-    console.log('Step 2: Loading pdf-parse...')
-    const pdf = (await import('pdf-parse')).default
+    console.log('Step 3: Loading pdf-parse...')
+    const pdf = require('pdf-parse')
     console.log('✓ pdf-parse loaded successfully')
 
     // Get the uploaded PDF file
-    console.log('Step 3: Parsing form data...')
+    console.log('Step 4: Parsing form data...')
     const formData = await request.formData()
     const file = formData.get('pdf') as File
     console.log(`✓ File received: ${file?.name || 'unknown'}, size: ${file?.size || 0} bytes`)
@@ -28,12 +35,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert file to buffer
-    console.log('Step 4: Converting file to buffer...')
+    console.log('Step 5: Converting file to buffer...')
     const buffer = Buffer.from(await file.arrayBuffer())
     console.log(`✓ Buffer created: ${buffer.length} bytes`)
 
     // Extract text from PDF
-    console.log('Step 5: Extracting text from PDF...')
+    console.log('Step 6: Extracting text from PDF...')
     const pdfData = await pdf(buffer)
     const pdfText = pdfData.text
     console.log(`✓ Text extracted: ${pdfText.length} characters`)
@@ -47,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize Anthropic client
-    console.log('Step 6: Checking Anthropic API key...')
+    console.log('Step 7: Checking Anthropic API key...')
     const apiKey = process.env.ANTHROPIC_API_KEY
 
     if (!apiKey) {
@@ -59,7 +66,7 @@ export async function POST(request: NextRequest) {
     }
     console.log('✓ API key found')
 
-    console.log('Step 7: Initializing Anthropic client...')
+    console.log('Step 8: Initializing Anthropic client...')
     const anthropic = new Anthropic({
       apiKey: apiKey,
     })
@@ -132,7 +139,7 @@ ${pdfText}
 Return ONLY the JSON object, no additional text or explanation.`
 
     // Call Claude API
-    console.log('Step 8: Calling Claude API...')
+    console.log('Step 9: Calling Claude API...')
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
@@ -146,14 +153,14 @@ Return ONLY the JSON object, no additional text or explanation.`
     console.log('✓ Claude API call successful')
 
     // Extract the JSON from Claude's response
-    console.log('Step 9: Extracting JSON from response...')
+    console.log('Step 10: Extracting JSON from response...')
     const responseText = message.content[0].type === 'text'
       ? message.content[0].text
       : ''
     console.log(`✓ Response text length: ${responseText.length} characters`)
 
     // Parse the JSON
-    console.log('Step 10: Parsing JSON...')
+    console.log('Step 11: Parsing JSON...')
     const parsedData = JSON.parse(responseText)
     console.log('✓ JSON parsed successfully')
     console.log('=== PDF Parse Request Completed Successfully ===')
