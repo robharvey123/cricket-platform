@@ -2,15 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== PDF Parse Request Started ===')
+
     // Dynamic imports for packages that don't bundle well
+    console.log('Step 1: Loading Anthropic SDK...')
     const Anthropic = (await import('@anthropic-ai/sdk')).default
+    console.log('✓ Anthropic SDK loaded successfully')
+
+    console.log('Step 2: Loading pdf-parse...')
     const pdf = (await import('pdf-parse')).default
+    console.log('✓ pdf-parse loaded successfully')
 
     // Get the uploaded PDF file
+    console.log('Step 3: Parsing form data...')
     const formData = await request.formData()
     const file = formData.get('pdf') as File
+    console.log(`✓ File received: ${file?.name || 'unknown'}, size: ${file?.size || 0} bytes`)
 
     if (!file) {
+      console.error('✗ No PDF file uploaded')
       return NextResponse.json(
         { error: 'No PDF file uploaded' },
         { status: 400 }
@@ -18,13 +28,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Convert file to buffer
+    console.log('Step 4: Converting file to buffer...')
     const buffer = Buffer.from(await file.arrayBuffer())
+    console.log(`✓ Buffer created: ${buffer.length} bytes`)
 
     // Extract text from PDF
+    console.log('Step 5: Extracting text from PDF...')
     const pdfData = await pdf(buffer)
     const pdfText = pdfData.text
+    console.log(`✓ Text extracted: ${pdfText.length} characters`)
 
     if (!pdfText || pdfText.trim().length === 0) {
+      console.error('✗ Could not extract text from PDF')
       return NextResponse.json(
         { error: 'Could not extract text from PDF' },
         { status: 400 }
@@ -32,18 +47,23 @@ export async function POST(request: NextRequest) {
     }
 
     // Initialize Anthropic client
+    console.log('Step 6: Checking Anthropic API key...')
     const apiKey = process.env.ANTHROPIC_API_KEY
 
     if (!apiKey) {
+      console.error('✗ Anthropic API key not found in environment')
       return NextResponse.json(
         { error: 'Anthropic API key not configured. Please add ANTHROPIC_API_KEY to your .env.local file.' },
         { status: 500 }
       )
     }
+    console.log('✓ API key found')
 
+    console.log('Step 7: Initializing Anthropic client...')
     const anthropic = new Anthropic({
       apiKey: apiKey,
     })
+    console.log('✓ Anthropic client initialized')
 
     // Create the parsing prompt
     const prompt = `You are a cricket scorecard parser. Extract all match data from the following cricket scorecard text and return it as a JSON object.
@@ -112,6 +132,7 @@ ${pdfText}
 Return ONLY the JSON object, no additional text or explanation.`
 
     // Call Claude API
+    console.log('Step 8: Calling Claude API...')
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 4096,
@@ -122,23 +143,37 @@ Return ONLY the JSON object, no additional text or explanation.`
         }
       ]
     })
+    console.log('✓ Claude API call successful')
 
     // Extract the JSON from Claude's response
+    console.log('Step 9: Extracting JSON from response...')
     const responseText = message.content[0].type === 'text'
       ? message.content[0].text
       : ''
+    console.log(`✓ Response text length: ${responseText.length} characters`)
 
     // Parse the JSON
+    console.log('Step 10: Parsing JSON...')
     const parsedData = JSON.parse(responseText)
+    console.log('✓ JSON parsed successfully')
+    console.log('=== PDF Parse Request Completed Successfully ===')
 
     return NextResponse.json(parsedData)
 
   } catch (error: any) {
-    console.error('PDF parsing error:', error)
+    console.error('=== PDF PARSING ERROR ===')
+    console.error('Error name:', error.name)
+    console.error('Error message:', error.message)
+    console.error('Error stack:', error.stack)
+    console.error('Full error object:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
+    console.error('========================')
+
     return NextResponse.json(
       {
         error: 'Failed to parse PDF',
         details: error.message,
+        errorType: error.name,
+        stack: error.stack,
       },
       { status: 500 }
     )
