@@ -29,6 +29,11 @@ const nextConfig = {
   // Server-side external packages
   serverExternalPackages: ['@anthropic-ai/sdk', 'pdf-parse'],
 
+  // Experimental features
+  experimental: {
+    serverComponentsExternalPackages: ['@anthropic-ai/sdk', 'pdf-parse'],
+  },
+
   // Security headers
   async headers() {
     return [
