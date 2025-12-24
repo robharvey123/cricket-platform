@@ -431,6 +431,17 @@ export default function ImportPDFPage() {
               </>
             )}
 
+            {importing && (
+              <div className={styles.progressContainer}>
+                <div className={styles.progressBar}>
+                  <div className={styles.progressBarFill}></div>
+                </div>
+                <p className={styles.progressText}>
+                  Importing match data... This may take a few seconds
+                </p>
+              </div>
+            )}
+
             <div className={styles.footerRow}>
               <button
                 onClick={() => {
