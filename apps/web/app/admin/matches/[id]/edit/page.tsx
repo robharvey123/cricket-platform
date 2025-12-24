@@ -394,7 +394,27 @@ export default function EditMatchPage() {
             </h2>
 
             {/* Innings Summary */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr', gap: '12px', marginBottom: '24px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
+                  Batting Team
+                </label>
+                <select
+                  value={innings.batting_team}
+                  onChange={(e) => updateInningsField(inningsIdx, 'batting_team', e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="home">Brookweald CC</option>
+                  <option value="away">Opposition</option>
+                </select>
+              </div>
               <div>
                 <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
                   Total Runs

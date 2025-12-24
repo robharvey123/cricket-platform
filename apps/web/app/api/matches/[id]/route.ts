@@ -156,6 +156,7 @@ export async function PATCH(
       const { error: inningsError } = await supabase
         .from('innings')
         .update({
+          batting_team: innings.batting_team,
           total_runs: innings.total_runs,
           wickets: innings.wickets,
           overs: innings.overs,
