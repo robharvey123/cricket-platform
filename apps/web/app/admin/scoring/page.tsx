@@ -233,13 +233,13 @@ export default function ScoringConfigPage() {
               <div className={styles.sectionBlock}>
                 <h3>Milestones</h3>
                 <div className={styles.milestoneList}>
-                  {formula.batting.milestones.map((milestone, idx) => (
+                  {(formula.batting.milestones || []).map((milestone, idx) => (
                     <div key={idx} className={styles.milestoneRow}>
                       <input
                         type="number"
                         value={milestone.at}
                         onChange={(e) => {
-                          const newMilestones = [...formula.batting.milestones]
+                          const newMilestones = [...(formula.batting.milestones || [])]
                           newMilestones[idx].at = parseInt(e.target.value)
                           updateFormula(['batting', 'milestones'], newMilestones)
                         }}
@@ -250,7 +250,7 @@ export default function ScoringConfigPage() {
                         type="number"
                         value={milestone.bonus}
                         onChange={(e) => {
-                          const newMilestones = [...formula.batting.milestones]
+                          const newMilestones = [...(formula.batting.milestones || [])]
                           newMilestones[idx].bonus = parseInt(e.target.value)
                           updateFormula(['batting', 'milestones'], newMilestones)
                         }}
