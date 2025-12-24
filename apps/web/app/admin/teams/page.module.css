@@ -55,6 +55,113 @@
   }
 }
 
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.primaryButton {
+  composes: primaryButton from '../../ui/theme.module.css';
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../ui/theme.module.css';
+}
+
+.cardTitle {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.input {
+  composes: input from '../../ui/theme.module.css';
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.tableBlock {
+  composes: tableBlock from '../../ui/theme.module.css';
+}
+
+.tableWrap {
+  composes: tableWrap from '../../ui/theme.module.css';
+}
+
+.table {
+  composes: table from '../../ui/theme.module.css';
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.linkButton {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.linkButton:hover {
+  color: #2563eb;
+}
+
+.dangerButton {
+  color: #ef4444;
+}
+
+.dangerButton:hover {
+  color: #dc2626;
+}
+
+.alert {
+  composes: alert from '../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../ui/theme.module.css';
+}
+
+@media (max-width: 768px) {
+  .actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
 @media (max-width: 640px) {
   .emptyCard {
     padding: 32px 24px;
