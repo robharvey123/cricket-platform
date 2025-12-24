@@ -6,8 +6,14 @@
 
 1. Go to your Supabase project dashboard
 2. Navigate to **SQL Editor**
-3. Run the migration:
+3. Run the migrations in order:
+
+   a) **Foundation Migration**:
    - Copy contents of `supabase/migrations/20241224_multi_tenant_foundation.sql`
+   - Paste and click **Run**
+
+   b) **Player Statistics Migration**:
+   - Copy contents of `supabase/migrations/20241225_player_statistics.sql`
    - Paste and click **Run**
 
 4. Run the seed data:

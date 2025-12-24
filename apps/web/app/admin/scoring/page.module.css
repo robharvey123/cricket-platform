@@ -1,0 +1,178 @@
+.page {
+  composes: page from '../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 80% 20%, rgba(14, 165, 233, 0.18), transparent 50%),
+    radial-gradient(circle at 10% 90%, rgba(14, 116, 144, 0.12), transparent 55%),
+    linear-gradient(140deg, #f8fafc 0%, #ecfeff 55%, #fef3c7 100%);
+}
+
+.shell {
+  composes: shell from '../../ui/theme.module.css';
+}
+
+.header {
+  composes: header from '../../ui/theme.module.css';
+}
+
+.kicker {
+  composes: kicker from '../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../ui/theme.module.css';
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.cardHeader h2 {
+  font-size: 20px;
+}
+
+.cardHeader p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.alert {
+  composes: alert from '../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../ui/theme.module.css';
+}
+
+.alertSuccess {
+  composes: alertSuccess from '../../ui/theme.module.css';
+}
+
+.alertInfo {
+  composes: alertInfo from '../../ui/theme.module.css';
+}
+
+.fieldLabel {
+  composes: fieldLabel from '../../ui/theme.module.css';
+}
+
+.field {
+  composes: field from '../../ui/theme.module.css';
+}
+
+.textarea {
+  width: 100%;
+  height: 420px;
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font-family: "SFMono-Regular", "Menlo", "Monaco", "Courier New", monospace;
+  font-size: 13px;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+.buttonRow {
+  display: flex;
+}
+
+.primaryButton {
+  composes: primaryButton from '../../ui/theme.module.css';
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../ui/theme.module.css';
+}
+
+.ghostButton {
+  composes: ghostButton from '../../ui/theme.module.css';
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.sectionBlock {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionBlock h3 {
+  font-size: 14px;
+  color: #334155;
+}
+
+.milestoneList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.milestoneRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.preview {
+  font-size: 14px;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.preview strong {
+  color: #0f172a;
+}
+
+.actionBar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.actionGroup {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actionGroup {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .milestoneRow {
+    grid-template-columns: 1fr;
+  }
+}

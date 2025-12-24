@@ -1,0 +1,275 @@
+.page {
+  composes: page from '../../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.16), transparent 55%),
+    radial-gradient(circle at 90% 10%, rgba(245, 158, 11, 0.2), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 60%, #fff7ed 100%);
+}
+
+.shell {
+  composes: shell from '../../../ui/theme.module.css';
+  max-width: 1100px;
+}
+
+.backRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.backLink {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.header {
+  composes: header from '../../../ui/theme.module.css';
+}
+
+.kicker {
+  composes: kicker from '../../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../../ui/theme.module.css';
+  font-size: clamp(2.2rem, 4vw, 3rem);
+}
+
+.subtitle {
+  composes: subtitle from '../../../ui/theme.module.css';
+  max-width: 60ch;
+}
+
+.card {
+  composes: card from '../../../ui/theme.module.css';
+  animation: fadeUp 0.7s ease both;
+}
+
+.cardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.cardHeader h2,
+.cardHeaderRow h2 {
+  font-size: 20px;
+}
+
+.cardHeader p,
+.cardHeaderRow p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.cardHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.uploadRow {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fileInput {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(248, 250, 252, 0.9);
+  font-size: 14px;
+  max-width: 420px;
+}
+
+.fileMeta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+  color: #475569;
+}
+
+.fileMeta strong {
+  color: #0f172a;
+}
+
+.primaryButton {
+  composes: primaryButton from '../../../ui/theme.module.css';
+  align-self: flex-start;
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../../ui/theme.module.css';
+}
+
+.ghostButton {
+  composes: ghostButton from '../../../ui/theme.module.css';
+}
+
+.alert {
+  composes: alert from '../../../ui/theme.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #fff;
+}
+
+.alert h3 {
+  font-size: 14px;
+}
+
+.alert ul {
+  padding-left: 18px;
+  font-size: 13px;
+}
+
+.alertError {
+  composes: alertError from '../../../ui/theme.module.css';
+}
+
+.alertWarning {
+  border-color: rgba(217, 119, 6, 0.4);
+  background: rgba(254, 243, 199, 0.7);
+  color: #b45309;
+}
+
+.issueError {
+  color: #b91c1c;
+}
+
+.issueWarning {
+  color: #b45309;
+}
+
+.codeBlock {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 16px;
+  border-radius: 14px;
+  max-height: 500px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.section {
+  margin-bottom: 24px;
+}
+
+.section h3 {
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.fieldLabel {
+  composes: fieldLabel from '../../../ui/theme.module.css';
+}
+
+.field {
+  composes: field from '../../../ui/theme.module.css';
+}
+
+.summaryRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.pill {
+  composes: pill from '../../../ui/theme.module.css';
+}
+
+.muted {
+  composes: muted from '../../../ui/theme.module.css';
+}
+
+.tableBlock {
+  composes: tableBlock from '../../../ui/theme.module.css';
+}
+
+.tableHeader {
+  composes: tableHeader from '../../../ui/theme.module.css';
+}
+
+.tableWrap {
+  composes: tableWrap from '../../../ui/theme.module.css';
+}
+
+.table {
+  composes: table from '../../../ui/theme.module.css';
+}
+
+.table td:nth-child(n + 2):nth-child(-n + 5) {
+  text-align: center;
+}
+
+.footerRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .cardHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .fileMeta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .summaryRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -1,0 +1,145 @@
+.page {
+  composes: page from '../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.14), transparent 55%),
+    radial-gradient(circle at 90% 10%, rgba(236, 72, 153, 0.12), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 60%, #fef3c7 100%);
+}
+
+.shell {
+  composes: shell from '../../ui/theme.module.css';
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.kicker {
+  composes: kicker from '../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.primaryButton {
+  composes: primaryButton from '../../ui/theme.module.css';
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../ui/theme.module.css';
+}
+
+.alert {
+  composes: alert from '../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../ui/theme.module.css';
+}
+
+.emptyState {
+  composes: card from '../../ui/theme.module.css';
+  padding: 48px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emptyState h2 {
+  font-size: 20px;
+}
+
+.emptyState p {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.tableCard {
+  composes: card from '../../ui/theme.module.css';
+  padding: 12px;
+}
+
+.tableWrap {
+  composes: tableWrap from '../../ui/theme.module.css';
+  border: none;
+}
+
+.table {
+  composes: table from '../../ui/theme.module.css';
+}
+
+.tableAction {
+  text-align: right;
+}
+
+.tableActionCell {
+  text-align: right;
+}
+
+.row:hover {
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.cellButton {
+  cursor: pointer;
+}
+
+.cellMuted {
+  color: #64748b;
+  cursor: pointer;
+}
+
+.badge {
+  composes: badge from '../../ui/theme.module.css';
+}
+
+.badgeNeutral {
+  composes: badgeNeutral from '../../ui/theme.module.css';
+}
+
+.badgeSuccess {
+  composes: badgeSuccess from '../../ui/theme.module.css';
+}
+
+.badgeDanger {
+  composes: badgeDanger from '../../ui/theme.module.css';
+}
+
+.badgeInfo {
+  composes: badgeInfo from '../../ui/theme.module.css';
+}
+
+.badgeWarning {
+  composes: badgeWarning from '../../ui/theme.module.css';
+}
+
+.badgeMuted {
+  composes: badgeMuted from '../../ui/theme.module.css';
+}
+
+@media (max-width: 900px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .emptyState {
+    padding: 32px 24px;
+  }
+}

@@ -1,23 +1,21 @@
+import styles from './page.module.css'
+
 export default function SeasonsPage() {
   return (
-    <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-        Seasons
-      </h1>
-      <p style={{ color: '#6b7280', marginBottom: '32px' }}>
-        Manage your cricket seasons
-      </p>
+    <div className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <span className={styles.kicker}>Competition Setup</span>
+          <h1 className={styles.title}>Seasons</h1>
+          <p className={styles.subtitle}>
+            Manage fixtures, standings, and historical seasons in one view.
+          </p>
+        </header>
 
-      <div style={{
-        background: 'white',
-        padding: '60px',
-        borderRadius: '8px',
-        textAlign: 'center',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <p style={{ fontSize: '18px', color: '#6b7280' }}>
-          Seasons management coming soon
-        </p>
+        <section className={styles.emptyCard}>
+          <h2>Seasons management coming soon</h2>
+          <p>We are building season timelines, fixture blocks, and summaries.</p>
+        </section>
       </div>
     </div>
   )

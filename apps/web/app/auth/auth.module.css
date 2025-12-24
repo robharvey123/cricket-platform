@@ -1,0 +1,77 @@
+.page {
+  composes: page from '../ui/theme.module.css';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.18), transparent 55%),
+    radial-gradient(circle at 90% 10%, rgba(244, 114, 182, 0.2), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 55%, #fef3c7 100%);
+}
+
+.card {
+  composes: card from '../ui/theme.module.css';
+  width: min(420px, 100%);
+  padding: 36px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  composes: title from '../ui/theme.module.css';
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  composes: subtitle from '../ui/theme.module.css';
+  font-size: 14px;
+}
+
+.alert {
+  composes: alert from '../ui/theme.module.css';
+  composes: alertError from '../ui/theme.module.css';
+  margin-bottom: 18px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldLabel {
+  composes: fieldLabel from '../ui/theme.module.css';
+}
+
+.field {
+  composes: field from '../ui/theme.module.css';
+}
+
+.button {
+  composes: primaryButton from '../ui/theme.module.css';
+  width: 100%;
+  padding: 12px 16px;
+}
+
+.footer {
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+  margin-top: 18px;
+}
+
+.link {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 28px 22px;
+  }
+}

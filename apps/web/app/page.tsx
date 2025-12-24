@@ -1,49 +1,52 @@
+import Link from 'next/link'
+import styles from './page.module.css'
+
 export default function Home() {
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
-      <div style={{
-        textAlign: 'center',
-        color: 'white',
-        maxWidth: '600px'
-      }}>
-        <h1 style={{
-          fontSize: '48px',
-          fontWeight: 'bold',
-          marginBottom: '16px'
-        }}>
-          Cricket Platform
-        </h1>
-        <p style={{
-          fontSize: '20px',
-          marginBottom: '32px',
-          opacity: 0.9
-        }}>
-          Manage your cricket club with ease. Track players, matches, and performance.
-        </p>
-        <a
-          href="/auth/signin"
-          style={{
-            display: 'inline-block',
-            padding: '14px 32px',
-            background: 'white',
-            color: '#667eea',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontSize: '16px',
-            fontWeight: '600',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-          }}
-        >
-          Sign In
-        </a>
-      </div>
+    <div className={styles.page}>
+      <div className={styles.glow} aria-hidden="true" />
+      <main className={styles.hero}>
+        <div className={styles.copy}>
+          <span className={styles.kicker}>Club Operations Suite</span>
+          <h1 className={styles.title}>Cricket Platform</h1>
+          <p className={styles.subtitle}>
+            Run fixtures, scorecards, and player performance in one calm, focused workspace.
+          </p>
+          <div className={styles.actions}>
+            <Link className={styles.primary} href="/auth/signin">
+              Sign In
+            </Link>
+            <Link className={styles.secondary} href="/admin">
+              Open Admin
+            </Link>
+          </div>
+        </div>
+
+        <div className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <span className={styles.panelEyebrow}>Match Day</span>
+            <h2 className={styles.panelTitle}>Everything you need, before the toss.</h2>
+          </div>
+          <div className={styles.cardGrid}>
+            <article className={styles.card}>
+              <h3>Smart Imports</h3>
+              <p>Pull scorecards from PDFs and tidy them up in minutes.</p>
+            </article>
+            <article className={styles.card}>
+              <h3>Live Scoring</h3>
+              <p>Track innings, extras, and milestones without juggling sheets.</p>
+            </article>
+            <article className={styles.card}>
+              <h3>Player Insights</h3>
+              <p>See form trends and performance breakdowns instantly.</p>
+            </article>
+            <article className={styles.card}>
+              <h3>Club Memory</h3>
+              <p>Keep seasons, squads, and fixtures organized for the long haul.</p>
+            </article>
+          </div>
+        </div>
+      </main>
     </div>
   )
 }

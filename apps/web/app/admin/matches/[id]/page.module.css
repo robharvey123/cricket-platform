@@ -1,0 +1,164 @@
+.page {
+  composes: page from '../../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.14), transparent 55%),
+    radial-gradient(circle at 90% 10%, rgba(94, 234, 212, 0.14), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 60%, #ecfeff 100%);
+}
+
+.shell {
+  composes: shell from '../../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../../ui/theme.module.css';
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.primaryButton {
+  composes: primaryButton from '../../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../../ui/theme.module.css';
+}
+
+.matchHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.matchHeader h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-family: "Bodoni MT", "Didot", "Palatino Linotype", "Georgia", serif;
+  margin-bottom: 6px;
+}
+
+.matchHeader p {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.metaGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.metaGrid span {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.metaGrid strong {
+  font-size: 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sectionHeader h2 {
+  font-size: 18px;
+  color: #1e293b;
+}
+
+.scorePill {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.tableBlock {
+  composes: tableBlock from '../../../ui/theme.module.css';
+}
+
+.tableHeader {
+  composes: tableHeader from '../../../ui/theme.module.css';
+}
+
+.tableWrap {
+  composes: tableWrap from '../../../ui/theme.module.css';
+}
+
+.table {
+  composes: table from '../../../ui/theme.module.css';
+}
+
+.table td:nth-child(n + 2):nth-child(-n + 6) {
+  text-align: center;
+}
+
+.badge {
+  composes: badge from '../../../ui/theme.module.css';
+}
+
+.badgeSuccess {
+  composes: badgeSuccess from '../../../ui/theme.module.css';
+}
+
+.badgeDanger {
+  composes: badgeDanger from '../../../ui/theme.module.css';
+}
+
+.badgeMuted {
+  composes: badgeMuted from '../../../ui/theme.module.css';
+}
+
+.pill {
+  composes: pill from '../../../ui/theme.module.css';
+}
+
+.muted {
+  composes: muted from '../../../ui/theme.module.css';
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
+
+.alert {
+  composes: alert from '../../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../../ui/theme.module.css';
+}
+
+@media (max-width: 900px) {
+  .matchHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

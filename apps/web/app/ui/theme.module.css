@@ -1,0 +1,248 @@
+.page {
+  min-height: 100vh;
+  color: #0f172a;
+  font-family: "Avenir Next", "Futura", "Trebuchet MS", "Gill Sans", sans-serif;
+}
+
+.shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeUp 0.6s ease both;
+}
+
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.title {
+  font-family: "Bodoni MT", "Didot", "Palatino Linotype", "Georgia", serif;
+  font-size: clamp(2.1rem, 4vw, 3rem);
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  color: #475569;
+  font-size: 16px;
+  max-width: 60ch;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  padding: 28px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.12);
+}
+
+.primaryButton,
+.secondaryButton,
+.ghostButton {
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.primaryButton {
+  background: #0f172a;
+  color: #f8fafc;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled {
+  background: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+  color: #f8fafc;
+}
+
+.secondaryButton {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.ghostButton {
+  background: transparent;
+  border-color: rgba(15, 23, 42, 0.2);
+  color: #0f172a;
+}
+
+.alert {
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid;
+  font-size: 14px;
+}
+
+.alertError {
+  border-color: rgba(220, 38, 38, 0.4);
+  background: rgba(254, 226, 226, 0.6);
+  color: #b91c1c;
+}
+
+.alertSuccess {
+  border-color: rgba(22, 163, 74, 0.4);
+  background: rgba(220, 252, 231, 0.7);
+  color: #15803d;
+}
+
+.alertInfo {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(219, 234, 254, 0.7);
+  color: #1d4ed8;
+}
+
+.fieldLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.field {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  font-size: 14px;
+  background: #fff;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #fff;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.table th {
+  background: #f1f5f9;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.tableHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.tableHeader h3 {
+  font-size: 15px;
+}
+
+.tableBlock {
+  margin-top: 18px;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.pill {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.14);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.badgeSuccess {
+  background: rgba(34, 197, 94, 0.2);
+  color: #15803d;
+}
+
+.badgeDanger {
+  background: rgba(239, 68, 68, 0.2);
+  color: #b91c1c;
+}
+
+.badgeInfo {
+  background: rgba(59, 130, 246, 0.18);
+  color: #1d4ed8;
+}
+
+.badgeWarning {
+  background: rgba(245, 158, 11, 0.2);
+  color: #b45309;
+}
+
+.badgeMuted {
+  background: rgba(148, 163, 184, 0.2);
+  color: #64748b;
+}
+
+.badgeNeutral {
+  background: rgba(148, 163, 184, 0.2);
+  color: #475569;
+}
+
+.loading {
+  padding: 24px;
+  font-size: 16px;
+  color: #475569;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 36px 18px 60px;
+  }
+}

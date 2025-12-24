@@ -1,0 +1,179 @@
+.page {
+  composes: page from '../../../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.14), transparent 55%),
+    radial-gradient(circle at 85% 10%, rgba(236, 72, 153, 0.14), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 60%, #fff7ed 100%);
+}
+
+.shell {
+  composes: shell from '../../../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../../../ui/theme.module.css';
+}
+
+.headerRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.header {
+  composes: header from '../../../../ui/theme.module.css';
+}
+
+.kicker {
+  composes: kicker from '../../../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../../../ui/theme.module.css';
+}
+
+.cardHeader {
+  margin-bottom: 18px;
+}
+
+.cardHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.inningsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.fieldLabel {
+  composes: fieldLabel from '../../../../ui/theme.module.css';
+}
+
+.field {
+  composes: field from '../../../../ui/theme.module.css';
+}
+
+.tableBlock {
+  composes: tableBlock from '../../../../ui/theme.module.css';
+}
+
+.tableHeader {
+  composes: tableHeader from '../../../../ui/theme.module.css';
+}
+
+.tableWrap {
+  composes: tableWrap from '../../../../ui/theme.module.css';
+}
+
+.table {
+  composes: table from '../../../../ui/theme.module.css';
+}
+
+.table td:nth-child(n + 2):nth-child(-n + 6) {
+  text-align: center;
+}
+
+.tableInput {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font-size: 13px;
+  text-align: center;
+}
+
+.checkboxCell {
+  text-align: center;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.pill {
+  composes: pill from '../../../../ui/theme.module.css';
+}
+
+.muted {
+  composes: muted from '../../../../ui/theme.module.css';
+}
+
+.primaryButton {
+  composes: primaryButton from '../../../../ui/theme.module.css';
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../../../ui/theme.module.css';
+}
+
+.actionGroup {
+  display: flex;
+  gap: 12px;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.alert {
+  composes: alert from '../../../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../../../ui/theme.module.css';
+}
+
+@media (max-width: 900px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .cardHeaderRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .actionGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 640px) {
+  .footerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

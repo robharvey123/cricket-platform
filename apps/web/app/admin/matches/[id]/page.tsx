@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
+import styles from './page.module.css'
 
 interface Player {
   first_name: string
@@ -90,41 +91,24 @@ export default function MatchDetailPage() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <p>Loading match...</p>
+      <div className={styles.page}>
+        <div className={styles.shell}>
+          <div className={styles.loading}>Loading match...</div>
+        </div>
       </div>
     )
   }
 
   if (error || !match) {
     return (
-      <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-        <Link
-          href="/admin/matches"
-          style={{
-            color: '#6b7280',
-            textDecoration: 'none',
-            fontSize: '14px',
-            marginBottom: '24px',
-            display: 'inline-block'
-          }}
-        >
-          ← Back to Matches
-        </Link>
-        <div style={{
-          background: '#fee2e2',
-          border: '1px solid #ef4444',
-          padding: '16px',
-          borderRadius: '6px'
-        }}>
-          <p style={{ color: '#dc2626', fontSize: '14px', margin: 0 }}>
+      <div className={styles.page}>
+        <div className={styles.shell}>
+          <Link href="/admin/matches" className={styles.backLink}>
+            ← Back to Matches
+          </Link>
+          <div className={`${styles.alert} ${styles.alertError}`}>
             {error || 'Match not found'}
-          </p>
+          </div>
         </div>
       </div>
     )
@@ -133,251 +117,174 @@ export default function MatchDetailPage() {
   const hasInnings = match.innings && match.innings.length > 0
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Link
-          href="/admin/matches"
-          style={{
-            color: '#6b7280',
-            textDecoration: 'none',
-            fontSize: '14px'
-          }}
-        >
-          ← Back to Matches
-        </Link>
-        <Link
-          href={`/admin/matches/${matchId}/edit`}
-          style={{
-            padding: '8px 16px',
-            background: '#7c3aed',
-            color: 'white',
-            borderRadius: '6px',
-            textDecoration: 'none',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}
-        >
-          Edit Match
-        </Link>
-      </div>
-
-      {/* Match Header */}
-      <div style={{
-        background: 'white',
-        padding: '32px',
-        borderRadius: '8px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        marginBottom: '24px'
-      }}>
-        <div style={{ marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-            vs {match.opponent_name}
-          </h1>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>
-            {new Date(match.match_date).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </p>
+    <div className={styles.page}>
+      <div className={styles.shell}>
+        <div className={styles.headerRow}>
+          <Link href="/admin/matches" className={styles.backLink}>
+            ← Back to Matches
+          </Link>
+          <Link href={`/admin/matches/${matchId}/edit`} className={styles.primaryButton}>
+            Edit Match
+          </Link>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '24px' }}>
-          <div>
-            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', textTransform: 'uppercase' }}>
-              Venue
-            </p>
-            <p style={{ fontSize: '16px', fontWeight: '500' }}>
-              {match.venue || 'TBD'}
-            </p>
-          </div>
-
-          <div>
-            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', textTransform: 'uppercase' }}>
-              Match Type
-            </p>
-            <p style={{ fontSize: '16px', fontWeight: '500', textTransform: 'capitalize' }}>
-              {match.match_type}
-            </p>
-          </div>
-
-          <div>
-            <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px', textTransform: 'uppercase' }}>
-              Result
-            </p>
-            <p style={{
-              fontSize: '16px',
-              fontWeight: '600',
-              color: match.result === 'won' ? '#16a34a' : match.result === 'lost' ? '#dc2626' : '#6b7280',
-              textTransform: 'capitalize'
-            }}>
-              {match.result}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Innings Scorecards */}
-      {hasInnings ? (
-        match.innings
-          .sort((a, b) => a.innings_number - b.innings_number)
-          .map((innings) => (
-            <div
-              key={innings.id}
-              style={{
-                background: 'white',
-                padding: '32px',
-                borderRadius: '8px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-                marginBottom: '24px'
-              }}
+        <section className={styles.card}>
+          <div className={styles.matchHeader}>
+            <div>
+              <h1>vs {match.opponent_name}</h1>
+              <p>
+                {new Date(match.match_date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </p>
+            </div>
+            <span
+              className={`${styles.badge} ${
+                match.result === 'won'
+                  ? styles.badgeSuccess
+                  : match.result === 'lost'
+                    ? styles.badgeDanger
+                    : styles.badgeMuted
+              }`}
             >
-              {/* Innings Header */}
-              <div style={{ marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '8px', color: '#7c3aed' }}>
-                  Innings {innings.innings_number} - {innings.batting_team === 'home' ? 'Brookweald CC' : match.opponent_name}
-                </h2>
+              {match.result}
+            </span>
+          </div>
+
+          <div className={styles.metaGrid}>
+            <div>
+              <span>Venue</span>
+              <strong>{match.venue || 'TBD'}</strong>
+            </div>
+            <div>
+              <span>Match Type</span>
+              <strong className={styles.capitalize}>{match.match_type}</strong>
+            </div>
+            <div>
+              <span>Status</span>
+              <strong>{match.published ? 'Published' : 'Draft'}</strong>
+            </div>
+          </div>
+        </section>
+
+        {hasInnings ? (
+          match.innings
+            .sort((a, b) => a.innings_number - b.innings_number)
+            .map((innings) => (
+              <section key={innings.id} className={styles.card}>
+                <div className={styles.sectionHeader}>
+                  <h2>
+                    Innings {innings.innings_number} -{' '}
+                    {innings.batting_team === 'home' ? 'Brookweald CC' : match.opponent_name}
+                  </h2>
+                  <span className={styles.pill}>Scorecard</span>
+                </div>
+
                 {innings.total_runs !== null && (
-                  <div style={{
-                    background: '#f9fafb',
-                    padding: '12px 16px',
-                    borderRadius: '6px',
-                    display: 'inline-block'
-                  }}>
-                    <span style={{ fontSize: '24px', fontWeight: 'bold' }}>
+                  <div className={styles.scorePill}>
+                    <strong>
                       {innings.total_runs}/{innings.wickets}
-                    </span>
-                    <span style={{ fontSize: '14px', color: '#6b7280', marginLeft: '12px' }}>
-                      ({innings.overs} overs)
-                    </span>
+                    </strong>
+                    <span>({innings.overs} overs)</span>
                     {innings.extras !== null && innings.extras > 0 && (
-                      <span style={{ fontSize: '14px', color: '#6b7280', marginLeft: '12px' }}>
-                        Extras: {innings.extras}
-                      </span>
+                      <span className={styles.muted}>Extras: {innings.extras}</span>
                     )}
                   </div>
                 )}
-              </div>
 
-              {/* Batting Card - Only show for Brookweald's batting innings */}
-              {innings.batting_team === 'home' && innings.batting_cards.length > 0 && (
-                <div style={{ marginBottom: '32px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
-                    Batting
-                  </h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Batter</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>R</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>B</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>4s</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>6s</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>SR</th>
-                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Dismissal</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {innings.batting_cards
-                          .filter(card => !card.derived || card.runs > 0)
-                          .map((card, idx) => (
-                            <tr key={card.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '12px' }}>
-                                {card.players.first_name} {card.players.last_name}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center', fontWeight: '500' }}>
-                                {card.runs}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.balls_faced || '-'}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.fours}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.sixes}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.strike_rate ? card.strike_rate.toFixed(1) : '-'}
-                              </td>
-                              <td style={{ padding: '12px', fontSize: '13px', color: '#6b7280' }}>
-                                {card.is_out ? card.dismissal_text : 'not out'}
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                {innings.batting_team === 'home' && innings.batting_cards.length > 0 && (
+                  <div className={styles.tableBlock}>
+                    <div className={styles.tableHeader}>
+                      <h3>Batting</h3>
+                      <span className={styles.muted}>Brookweald innings</span>
+                    </div>
+                    <div className={styles.tableWrap}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Batter</th>
+                            <th>R</th>
+                            <th>B</th>
+                            <th>4s</th>
+                            <th>6s</th>
+                            <th>SR</th>
+                            <th>Dismissal</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {innings.batting_cards
+                            .filter(card => !card.derived || card.runs > 0)
+                            .map((card) => (
+                              <tr key={card.id}>
+                                <td>
+                                  {card.players.first_name} {card.players.last_name}
+                                </td>
+                                <td>{card.runs}</td>
+                                <td>{card.balls_faced || '-'}</td>
+                                <td>{card.fours}</td>
+                                <td>{card.sixes}</td>
+                                <td>{card.strike_rate ? card.strike_rate.toFixed(1) : '-'}</td>
+                                <td className={styles.muted}>
+                                  {card.is_out ? card.dismissal_text : 'not out'}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {/* Bowling Card - Only show for opposition's batting innings (Brookweald bowling) */}
-              {innings.batting_team === 'away' && innings.bowling_cards.length > 0 && (
-                <div>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
-                    Bowling
-                  </h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                          <th style={{ padding: '12px', textAlign: 'left', fontWeight: '600' }}>Bowler</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>O</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>M</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>R</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>W</th>
-                          <th style={{ padding: '12px', textAlign: 'center', fontWeight: '600' }}>Econ</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {innings.bowling_cards
-                          .filter(card => !card.derived || card.wickets > 0)
-                          .map((card) => (
-                            <tr key={card.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '12px' }}>
-                                {card.players.first_name} {card.players.last_name}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.overs}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.maidens}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.runs_conceded}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center', fontWeight: '500' }}>
-                                {card.wickets}
-                              </td>
-                              <td style={{ padding: '12px', textAlign: 'center' }}>
-                                {card.economy ? card.economy.toFixed(2) : '-'}
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                {innings.batting_team === 'away' && innings.bowling_cards.length > 0 && (
+                  <div className={styles.tableBlock}>
+                    <div className={styles.tableHeader}>
+                      <h3>Bowling</h3>
+                      <span className={styles.muted}>Brookweald bowlers</span>
+                    </div>
+                    <div className={styles.tableWrap}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Bowler</th>
+                            <th>O</th>
+                            <th>M</th>
+                            <th>R</th>
+                            <th>W</th>
+                            <th>Econ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {innings.bowling_cards
+                            .filter(card => !card.derived || card.wickets > 0)
+                            .map((card) => (
+                              <tr key={card.id}>
+                                <td>
+                                  {card.players.first_name} {card.players.last_name}
+                                </td>
+                                <td>{card.overs}</td>
+                                <td>{card.maidens}</td>
+                                <td>{card.runs_conceded}</td>
+                                <td>{card.wickets}</td>
+                                <td>{card.economy ? card.economy.toFixed(2) : '-'}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          ))
-      ) : (
-        <div style={{
-          background: 'white',
-          padding: '32px',
-          borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
-            Match Details
-          </h2>
-          <p style={{ color: '#6b7280' }}>
-            No scorecard data available for this match yet.
-          </p>
-        </div>
-      )}
+                )}
+              </section>
+            ))
+        ) : (
+          <section className={styles.card}>
+            <h2>Match Details</h2>
+            <p className={styles.muted}>No scorecard data available for this match yet.</p>
+          </section>
+        )}
+      </div>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import styles from './page.module.css'
 
 interface Match {
   id: string
@@ -43,215 +44,134 @@ export default function MatchesPage() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <p>Loading matches...</p>
+      <div className={styles.page}>
+        <div className={styles.shell}>
+          <div className={styles.loading}>Loading matches...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '32px'
-      }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', margin: 0 }}>
-          Matches
-        </h1>
-        <Link
-          href="/admin/matches/import-pdf"
-          style={{
-            padding: '10px 20px',
-            background: '#7c3aed',
-            color: 'white',
-            borderRadius: '6px',
-            textDecoration: 'none',
-            fontSize: '14px',
-            fontWeight: '500'
-          }}
-        >
-          Import from PDF
-        </Link>
-      </div>
-
-      {error && (
-        <div style={{
-          background: '#fee2e2',
-          border: '1px solid #ef4444',
-          padding: '16px',
-          borderRadius: '6px',
-          marginBottom: '24px'
-        }}>
-          <p style={{ color: '#dc2626', fontSize: '14px', margin: 0 }}>
-            {error}
-          </p>
-        </div>
-      )}
-
-      {matches.length === 0 ? (
-        <div style={{
-          background: 'white',
-          padding: '60px',
-          borderRadius: '8px',
-          textAlign: 'center',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-        }}>
-          <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '24px' }}>
-            No matches yet
-          </p>
-          <Link
-            href="/admin/matches/import-pdf"
-            style={{
-              display: 'inline-block',
-              padding: '10px 20px',
-              background: '#7c3aed',
-              color: 'white',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            Import your first match
+    <div className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <div>
+            <span className={styles.kicker}>Club Records</span>
+            <h1 className={styles.title}>Matches</h1>
+            <p className={styles.subtitle}>Review scorecards, results, and stats.</p>
+          </div>
+          <Link href="/admin/matches/import-pdf" className={styles.primaryButton}>
+            Import from PDF
           </Link>
-        </div>
-      ) : (
-        <div style={{
-          background: 'white',
-          borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          overflow: 'hidden'
-        }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Date
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Opponent
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Venue
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Type
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Result
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Status
-                </th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {matches.map((match) => (
-                <tr
-                  key={match.id}
-                  style={{
-                    borderBottom: '1px solid #e5e7eb'
-                  }}
-                >
-                  <td
-                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
-                    onClick={() => router.push(`/admin/matches/${match.id}`)}
-                  >
-                    {new Date(match.match_date).toLocaleDateString()}
-                  </td>
-                  <td
-                    style={{ padding: '16px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
-                    onClick={() => router.push(`/admin/matches/${match.id}`)}
-                  >
-                    {match.opponent_name}
-                  </td>
-                  <td
-                    style={{ padding: '16px', fontSize: '14px', color: '#6b7280', cursor: 'pointer' }}
-                    onClick={() => router.push(`/admin/matches/${match.id}`)}
-                  >
-                    {match.venue || '-'}
-                  </td>
-                  <td
-                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
-                    onClick={() => router.push(`/admin/matches/${match.id}`)}
-                  >
-                    <span style={{
-                      padding: '4px 8px',
-                      background: '#f3f4f6',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      textTransform: 'capitalize'
-                    }}>
-                      {match.match_type}
-                    </span>
-                  </td>
-                  <td
-                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
-                    onClick={() => router.push(`/admin/matches/${match.id}`)}
-                  >
-                    <span style={{
-                      padding: '4px 8px',
-                      background: match.result === 'won' ? '#dcfce7' : match.result === 'lost' ? '#fee2e2' : '#f3f4f6',
-                      color: match.result === 'won' ? '#16a34a' : match.result === 'lost' ? '#dc2626' : '#6b7280',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      textTransform: 'capitalize'
-                    }}>
-                      {match.result}
-                    </span>
-                  </td>
-                  <td
-                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
-                    onClick={() => router.push(`/admin/matches/${match.id}`)}
-                  >
-                    <span style={{
-                      padding: '4px 8px',
-                      background: match.published ? '#dbeafe' : '#fef3c7',
-                      color: match.published ? '#1d4ed8' : '#92400e',
-                      borderRadius: '4px',
-                      fontSize: '12px',
-                      fontWeight: '500'
-                    }}>
-                      {match.published ? 'Published' : 'Draft'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px', fontSize: '14px', textAlign: 'right' }}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        router.push(`/admin/matches/${match.id}/edit`)
-                      }}
-                      style={{
-                        padding: '6px 12px',
-                        background: '#7c3aed',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '13px',
-                        fontWeight: '500',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+        </header>
+
+        {error && (
+          <div className={`${styles.alert} ${styles.alertError}`}>
+            {error}
+          </div>
+        )}
+
+        {matches.length === 0 ? (
+          <section className={styles.emptyState}>
+            <h2>No matches yet</h2>
+            <p>Import a scorecard PDF to get your first match on the board.</p>
+            <Link href="/admin/matches/import-pdf" className={styles.primaryButton}>
+              Import your first match
+            </Link>
+          </section>
+        ) : (
+          <section className={styles.tableCard}>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Opponent</th>
+                    <th>Venue</th>
+                    <th>Type</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                    <th className={styles.tableAction}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matches.map((match) => {
+                    const resultClass =
+                      match.result === 'won'
+                        ? styles.badgeSuccess
+                        : match.result === 'lost'
+                          ? styles.badgeDanger
+                          : styles.badgeMuted
+
+                    return (
+                      <tr key={match.id} className={styles.row}>
+                        <td
+                          className={styles.cellButton}
+                          onClick={() => router.push(`/admin/matches/${match.id}`)}
+                        >
+                          {new Date(match.match_date).toLocaleDateString()}
+                        </td>
+                        <td
+                          className={styles.cellButton}
+                          onClick={() => router.push(`/admin/matches/${match.id}`)}
+                        >
+                          {match.opponent_name}
+                        </td>
+                        <td
+                          className={styles.cellMuted}
+                          onClick={() => router.push(`/admin/matches/${match.id}`)}
+                        >
+                          {match.venue || '-'}
+                        </td>
+                        <td
+                          className={styles.cellButton}
+                          onClick={() => router.push(`/admin/matches/${match.id}`)}
+                        >
+                          <span className={`${styles.badge} ${styles.badgeNeutral}`}>
+                            {match.match_type}
+                          </span>
+                        </td>
+                        <td
+                          className={styles.cellButton}
+                          onClick={() => router.push(`/admin/matches/${match.id}`)}
+                        >
+                          <span className={`${styles.badge} ${resultClass}`}>
+                            {match.result}
+                          </span>
+                        </td>
+                        <td
+                          className={styles.cellButton}
+                          onClick={() => router.push(`/admin/matches/${match.id}`)}
+                        >
+                          <span
+                            className={`${styles.badge} ${
+                              match.published ? styles.badgeInfo : styles.badgeWarning
+                            }`}
+                          >
+                            {match.published ? 'Published' : 'Draft'}
+                          </span>
+                        </td>
+                        <td className={styles.tableActionCell}>
+                          <button
+                            className={styles.secondaryButton}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/admin/matches/${match.id}/edit`)
+                            }}
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </div>
     </div>
   )
 }

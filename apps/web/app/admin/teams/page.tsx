@@ -1,23 +1,21 @@
+import styles from './page.module.css'
+
 export default function TeamsPage() {
   return (
-    <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-        Teams
-      </h1>
-      <p style={{ color: '#6b7280', marginBottom: '32px' }}>
-        Organize and manage your teams
-      </p>
+    <div className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <span className={styles.kicker}>Club Structure</span>
+          <h1 className={styles.title}>Teams</h1>
+          <p className={styles.subtitle}>
+            Organize squads, captains, and weekly selections.
+          </p>
+        </header>
 
-      <div style={{
-        background: 'white',
-        padding: '60px',
-        borderRadius: '8px',
-        textAlign: 'center',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
-        <p style={{ fontSize: '18px', color: '#6b7280' }}>
-          Teams management coming soon
-        </p>
+        <section className={styles.emptyCard}>
+          <h2>Teams management coming soon</h2>
+          <p>We are building lineup tools, squad lists, and availability tracking.</p>
+        </section>
       </div>
     </div>
   )

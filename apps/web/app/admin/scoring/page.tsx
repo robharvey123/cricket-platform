@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { ScoringFormula, DEFAULT_FORMULA } from '../../../lib/scoring/engine'
 import { calcBattingPoints, calcBowlingPoints, calcFieldingPoints } from '../../../lib/scoring/engine'
+import styles from './page.module.css'
 
 export default function ScoringConfigPage() {
   const [formula, setFormula] = useState<ScoringFormula>(DEFAULT_FORMULA)
@@ -108,541 +109,315 @@ export default function ScoringConfigPage() {
 
   if (loading) {
     return (
-      <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-        <p>Loading scoring configuration...</p>
+      <div className={styles.page}>
+        <div className={styles.shell}>
+          <div className={styles.loading}>Loading scoring configuration...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-          Scoring Configuration
-        </h1>
-        <p style={{ color: '#6b7280' }}>
-          Configure how points are calculated for batting, bowling, and fielding
-        </p>
-      </div>
+    <div className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.header}>
+          <span className={styles.kicker}>Club Settings</span>
+          <h1 className={styles.title}>Scoring Configuration</h1>
+          <p className={styles.subtitle}>
+            Configure how points are calculated for batting, bowling, and fielding.
+          </p>
+        </header>
 
-      {error && (
-        <div style={{
-          background: '#fee2e2',
-          border: '1px solid #ef4444',
-          padding: '16px',
-          borderRadius: '6px',
-          marginBottom: '24px'
-        }}>
-          <p style={{ color: '#dc2626', fontSize: '14px', margin: 0 }}>
+        {error && (
+          <div className={`${styles.alert} ${styles.alertError}`}>
             {error}
-          </p>
-        </div>
-      )}
+          </div>
+        )}
 
-      {success && (
-        <div style={{
-          background: '#dcfce7',
-          border: '1px solid #16a34a',
-          padding: '16px',
-          borderRadius: '6px',
-          marginBottom: '24px'
-        }}>
-          <p style={{ color: '#16a34a', fontSize: '14px', margin: 0 }}>
+        {success && (
+          <div className={`${styles.alert} ${styles.alertSuccess}`}>
             Configuration saved successfully!
-          </p>
-        </div>
-      )}
+          </div>
+        )}
 
-      {calcSuccess && (
-        <div style={{
-          background: '#dbeafe',
-          border: '1px solid #3b82f6',
-          padding: '16px',
-          borderRadius: '6px',
-          marginBottom: '24px'
-        }}>
-          <p style={{ color: '#1d4ed8', fontSize: '14px', margin: 0 }}>
+        {calcSuccess && (
+          <div className={`${styles.alert} ${styles.alertInfo}`}>
             {calcSuccess}
-          </p>
+          </div>
+        )}
+
+        <section className={styles.card}>
+          <label className={styles.fieldLabel}>
+            Configuration Name
+            <input
+              type="text"
+              value={configName}
+              onChange={(e) => setConfigName(e.target.value)}
+              placeholder="e.g., 2025 Season Scoring"
+              className={styles.field}
+            />
+          </label>
+        </section>
+
+        <div className={styles.buttonRow}>
+          <button
+            onClick={() => setJsonView(!jsonView)}
+            className={jsonView ? styles.primaryButton : styles.ghostButton}
+          >
+            {jsonView ? 'Form View' : 'JSON View'}
+          </button>
         </div>
-      )}
 
-      <div style={{
-        background: 'white',
-        padding: '24px',
-        borderRadius: '8px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        marginBottom: '24px'
-      }}>
-        <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
-          Configuration Name
-        </label>
-        <input
-          type="text"
-          value={configName}
-          onChange={(e) => setConfigName(e.target.value)}
-          placeholder="e.g., 2025 Season Scoring"
-          style={{
-            width: '100%',
-            padding: '8px',
-            border: '1px solid #d1d5db',
-            borderRadius: '6px',
-            fontSize: '14px',
-            boxSizing: 'border-box'
-          }}
-        />
-      </div>
-
-      <div style={{ marginBottom: '24px', display: 'flex', gap: '12px' }}>
-        <button
-          onClick={() => setJsonView(!jsonView)}
-          style={{
-            padding: '8px 16px',
-            background: jsonView ? '#7c3aed' : '#f3f4f6',
-            color: jsonView ? 'white' : '#1f2937',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '14px',
-            cursor: 'pointer'
-          }}
-        >
-          {jsonView ? 'Form View' : 'JSON View'}
-        </button>
-      </div>
-
-      {jsonView ? (
-        <div style={{
-          background: 'white',
-          padding: '24px',
-          borderRadius: '8px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-          marginBottom: '24px'
-        }}>
-          <textarea
-            value={JSON.stringify(formula, null, 2)}
-            onChange={(e) => {
-              try {
-                const parsed = JSON.parse(e.target.value)
-                setFormula(parsed)
-                setError(null)
-              } catch (err) {
-                setError('Invalid JSON')
-              }
-            }}
-            style={{
-              width: '100%',
-              height: '500px',
-              fontFamily: 'monospace',
-              fontSize: '13px',
-              padding: '16px',
-              border: '1px solid #d1d5db',
-              borderRadius: '6px',
-              boxSizing: 'border-box'
-            }}
-          />
-        </div>
-      ) : (
-        <>
-          {/* Batting Config */}
-          <div style={{
-            background: 'white',
-            padding: '24px',
-            borderRadius: '8px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginBottom: '24px'
-          }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
-              Batting Points
-            </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+        {jsonView ? (
+          <section className={styles.card}>
+            <textarea
+              value={JSON.stringify(formula, null, 2)}
+              onChange={(e) => {
+                try {
+                  const parsed = JSON.parse(e.target.value)
+                  setFormula(parsed)
+                  setError(null)
+                } catch (err) {
+                  setError('Invalid JSON')
+                }
+              }}
+              className={styles.textarea}
+            />
+          </section>
+        ) : (
+          <>
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2>Batting Points</h2>
+                <p>Reward runs, boundaries, and milestones.</p>
+              </div>
+              <div className={styles.formGrid}>
+                <label className={styles.fieldLabel}>
                   Points per run
+                  <input
+                    type="number"
+                    value={formula.batting.per_run}
+                    onChange={(e) => updateFormula(['batting', 'per_run'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.batting.per_run}
-                  onChange={(e) => updateFormula(['batting', 'per_run'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Points per 4
+                  <input
+                    type="number"
+                    value={formula.batting.boundary_4}
+                    onChange={(e) => updateFormula(['batting', 'boundary_4'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.batting.boundary_4}
-                  onChange={(e) => updateFormula(['batting', 'boundary_4'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Points per 6
+                  <input
+                    type="number"
+                    value={formula.batting.boundary_6}
+                    onChange={(e) => updateFormula(['batting', 'boundary_6'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.batting.boundary_6}
-                  onChange={(e) => updateFormula(['batting', 'boundary_6'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Duck penalty
+                  <input
+                    type="number"
+                    value={formula.batting.duck_penalty}
+                    onChange={(e) => updateFormula(['batting', 'duck_penalty'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.batting.duck_penalty}
-                  onChange={(e) => updateFormula(['batting', 'duck_penalty'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
               </div>
-            </div>
 
-            <div style={{ marginTop: '16px' }}>
-              <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
-                Milestones
-              </label>
-              {formula.batting.milestones.map((milestone, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-                  <input
-                    type="number"
-                    value={milestone.at}
-                    onChange={(e) => {
-                      const newMilestones = [...formula.batting.milestones]
-                      newMilestones[idx].at = parseInt(e.target.value)
-                      updateFormula(['batting', 'milestones'], newMilestones)
-                    }}
-                    placeholder="Runs"
-                    style={{
-                      flex: 1,
-                      padding: '8px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px'
-                    }}
-                  />
-                  <input
-                    type="number"
-                    value={milestone.bonus}
-                    onChange={(e) => {
-                      const newMilestones = [...formula.batting.milestones]
-                      newMilestones[idx].bonus = parseInt(e.target.value)
-                      updateFormula(['batting', 'milestones'], newMilestones)
-                    }}
-                    placeholder="Bonus"
-                    style={{
-                      flex: 1,
-                      padding: '8px',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      fontSize: '14px'
-                    }}
-                  />
+              <div className={styles.sectionBlock}>
+                <h3>Milestones</h3>
+                <div className={styles.milestoneList}>
+                  {formula.batting.milestones.map((milestone, idx) => (
+                    <div key={idx} className={styles.milestoneRow}>
+                      <input
+                        type="number"
+                        value={milestone.at}
+                        onChange={(e) => {
+                          const newMilestones = [...formula.batting.milestones]
+                          newMilestones[idx].at = parseInt(e.target.value)
+                          updateFormula(['batting', 'milestones'], newMilestones)
+                        }}
+                        placeholder="Runs"
+                        className={styles.field}
+                      />
+                      <input
+                        type="number"
+                        value={milestone.bonus}
+                        onChange={(e) => {
+                          const newMilestones = [...formula.batting.milestones]
+                          newMilestones[idx].bonus = parseInt(e.target.value)
+                          updateFormula(['batting', 'milestones'], newMilestones)
+                        }}
+                        placeholder="Bonus"
+                        className={styles.field}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            </section>
 
-          {/* Bowling Config */}
-          <div style={{
-            background: 'white',
-            padding: '24px',
-            borderRadius: '8px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginBottom: '24px'
-          }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
-              Bowling Points
-            </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2>Bowling Points</h2>
+                <p>Keep wicket hauls and economy bonuses balanced.</p>
+              </div>
+              <div className={styles.formGrid}>
+                <label className={styles.fieldLabel}>
                   Points per wicket
+                  <input
+                    type="number"
+                    value={formula.bowling.per_wicket}
+                    onChange={(e) => updateFormula(['bowling', 'per_wicket'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.bowling.per_wicket}
-                  onChange={(e) => updateFormula(['bowling', 'per_wicket'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Points per maiden
+                  <input
+                    type="number"
+                    value={formula.bowling.maiden_over}
+                    onChange={(e) => updateFormula(['bowling', 'maiden_over'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.bowling.maiden_over}
-                  onChange={(e) => updateFormula(['bowling', 'maiden_over'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   3-wicket bonus
+                  <input
+                    type="number"
+                    value={formula.bowling.three_for_bonus || 0}
+                    onChange={(e) => updateFormula(['bowling', 'three_for_bonus'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.bowling.three_for_bonus || 0}
-                  onChange={(e) => updateFormula(['bowling', 'three_for_bonus'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   5-wicket bonus
+                  <input
+                    type="number"
+                    value={formula.bowling.five_for_bonus || 0}
+                    onChange={(e) => updateFormula(['bowling', 'five_for_bonus'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.bowling.five_for_bonus || 0}
-                  onChange={(e) => updateFormula(['bowling', 'five_for_bonus'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
               </div>
-            </div>
-          </div>
+            </section>
 
-          {/* Fielding Config */}
-          <div style={{
-            background: 'white',
-            padding: '24px',
-            borderRadius: '8px',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-            marginBottom: '24px'
-          }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
-              Fielding Points
-            </h2>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <h2>Fielding Points</h2>
+                <p>Reward athletic fielding and limit penalties.</p>
+              </div>
+              <div className={styles.formGrid}>
+                <label className={styles.fieldLabel}>
                   Points per catch
+                  <input
+                    type="number"
+                    value={formula.fielding.catch}
+                    onChange={(e) => updateFormula(['fielding', 'catch'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.fielding.catch}
-                  onChange={(e) => updateFormula(['fielding', 'catch'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Points per stumping
+                  <input
+                    type="number"
+                    value={formula.fielding.stumping}
+                    onChange={(e) => updateFormula(['fielding', 'stumping'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.fielding.stumping}
-                  onChange={(e) => updateFormula(['fielding', 'stumping'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Points per runout
+                  <input
+                    type="number"
+                    value={formula.fielding.runout}
+                    onChange={(e) => updateFormula(['fielding', 'runout'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.fielding.runout}
-                  onChange={(e) => updateFormula(['fielding', 'runout'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Drop penalty
+                  <input
+                    type="number"
+                    value={formula.fielding.drop_penalty}
+                    onChange={(e) => updateFormula(['fielding', 'drop_penalty'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.fielding.drop_penalty}
-                  onChange={(e) => updateFormula(['fielding', 'drop_penalty'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '6px' }}>
+                <label className={styles.fieldLabel}>
                   Misfield penalty
+                  <input
+                    type="number"
+                    value={formula.fielding.misfield_penalty}
+                    onChange={(e) => updateFormula(['fielding', 'misfield_penalty'], parseFloat(e.target.value))}
+                    className={styles.field}
+                  />
                 </label>
-                <input
-                  type="number"
-                  value={formula.fielding.misfield_penalty}
-                  onChange={(e) => updateFormula(['fielding', 'misfield_penalty'], parseFloat(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '6px',
-                    fontSize: '14px'
-                  }}
-                />
               </div>
-            </div>
+            </section>
+          </>
+        )}
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h2>Preview</h2>
+            <p>Sanity check the scoring outputs for common scenarios.</p>
           </div>
-        </>
-      )}
+          <div className={styles.preview}>
+            <p>
+              Batting 72 runs (10x4, 2x6, 55 balls):{' '}
+              <strong>
+                {calcBattingPoints(formula.batting, { runs: 72, balls: 55, fours: 10, sixes: 2 }).points}{' '}
+                points
+              </strong>
+            </p>
+            <p>
+              Bowling 8-2-24-3:{' '}
+              <strong>
+                {calcBowlingPoints(formula.bowling, { overs: 8, maidens: 2, runs: 24, wickets: 3 }).points}{' '}
+                points
+              </strong>
+            </p>
+            <p>
+              Fielding 2 catches, 1 drop:{' '}
+              <strong>
+                {calcFieldingPoints(formula.fielding, { catches: 2, stumpings: 0, runouts: 0, drops: 1, misfields: 0 }).points}{' '}
+                points
+              </strong>
+            </p>
+          </div>
+        </section>
 
-      {/* Preview */}
-      <div style={{
-        background: 'white',
-        padding: '24px',
-        borderRadius: '8px',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
-        marginBottom: '24px'
-      }}>
-        <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '16px' }}>
-          Preview
-        </h2>
-        <div style={{ fontSize: '13px', fontFamily: 'monospace', color: '#6b7280' }}>
-          <p>Batting 72 runs (10x4, 2x6, 55 balls): <strong style={{ color: '#16a34a' }}>
-            {calcBattingPoints(formula.batting, { runs: 72, balls: 55, fours: 10, sixes: 2 }).points} points
-          </strong></p>
-          <p>Bowling 8-2-24-3: <strong style={{ color: '#16a34a' }}>
-            {calcBowlingPoints(formula.bowling, { overs: 8, maidens: 2, runs: 24, wickets: 3 }).points} points
-          </strong></p>
-          <p>Fielding 2 catches, 1 drop: <strong style={{ color: '#16a34a' }}>
-            {calcFieldingPoints(formula.fielding, { catches: 2, stumpings: 0, runouts: 0, drops: 1, misfields: 0 }).points} points
-          </strong></p>
-        </div>
-      </div>
-
-      {/* Save Button */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-        <button
-          onClick={recalculatePoints}
-          disabled={calculating}
-          style={{
-            padding: '10px 20px',
-            background: calculating ? '#9ca3af' : '#0ea5e9',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            fontSize: '14px',
-            fontWeight: '500',
-            cursor: calculating ? 'not-allowed' : 'pointer'
-          }}
-        >
-          {calculating ? 'Calculating...' : 'Recalculate All Points'}
-        </button>
-
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className={styles.actionBar}>
           <button
-            onClick={() => setFormula(DEFAULT_FORMULA)}
-            style={{
-              padding: '10px 20px',
-              background: '#f3f4f6',
-              color: '#1f2937',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: 'pointer'
-            }}
+            onClick={recalculatePoints}
+            disabled={calculating}
+            className={styles.secondaryButton}
           >
-            Reset to Default
+            {calculating ? 'Calculating...' : 'Recalculate All Points'}
           </button>
-          <button
-            onClick={saveConfig}
-            disabled={saving}
-            style={{
-              padding: '10px 20px',
-              background: saving ? '#9ca3af' : '#7c3aed',
-              color: 'white',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '500',
-              cursor: saving ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {saving ? 'Saving...' : 'Save Configuration'}
-          </button>
+
+          <div className={styles.actionGroup}>
+            <button
+              onClick={() => setFormula(DEFAULT_FORMULA)}
+              className={styles.ghostButton}
+            >
+              Reset to Default
+            </button>
+            <button
+              onClick={saveConfig}
+              disabled={saving}
+              className={styles.primaryButton}
+            >
+              {saving ? 'Saving...' : 'Save Configuration'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
