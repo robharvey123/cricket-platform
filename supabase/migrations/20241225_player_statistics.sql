@@ -204,7 +204,7 @@ SELECT
   pss.*,
   p.first_name,
   p.last_name,
-  p.full_name,
+  (p.first_name || ' ' || p.last_name) as full_name,
   s.name as season_name,
   ROW_NUMBER() OVER (PARTITION BY pss.season_id ORDER BY pss.runs_scored DESC) as runs_rank,
   ROW_NUMBER() OVER (PARTITION BY pss.season_id ORDER BY pss.batting_average DESC NULLS LAST) as average_rank,
@@ -222,7 +222,7 @@ SELECT
   pss.*,
   p.first_name,
   p.last_name,
-  p.full_name,
+  (p.first_name || ' ' || p.last_name) as full_name,
   s.name as season_name,
   ROW_NUMBER() OVER (PARTITION BY pss.season_id ORDER BY pss.wickets DESC) as wickets_rank,
   ROW_NUMBER() OVER (PARTITION BY pss.season_id ORDER BY pss.bowling_average ASC NULLS LAST) as average_rank,
@@ -240,7 +240,7 @@ SELECT
   pss.*,
   p.first_name,
   p.last_name,
-  p.full_name,
+  (p.first_name || ' ' || p.last_name) as full_name,
   s.name as season_name,
   ROW_NUMBER() OVER (PARTITION BY pss.season_id ORDER BY pss.total_points DESC) as points_rank
 FROM public.player_season_stats pss
