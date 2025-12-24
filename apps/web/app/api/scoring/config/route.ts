@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
-import type { ScoringFormula } from '@/lib/scoring/types'
+import type { ScoringFormula } from '../../../../lib/scoring/types'
 
 /**
  * GET /api/scoring/config

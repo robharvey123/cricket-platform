@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '../../../../lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { calcTotalPoints } from '@/lib/scoring/engine'
-import type { ScoringFormula, BattingStats, BowlingStats, FieldingStats } from '@/lib/scoring/types'
+import { calcTotalPoints } from '../../../../lib/scoring/engine'
+import type { ScoringFormula, BattingStats, BowlingStats, FieldingStats } from '../../../../lib/scoring/types'
 
 /**
  * POST /api/scoring/calculate
