@@ -26,10 +26,21 @@ export async function GET(
       return NextResponse.json({ error: 'Club not found' }, { status: 404 })
     }
 
-    // Fetch match
+    // Fetch match with innings
     const { data: match, error: matchError } = await supabase
       .from('matches')
-      .select('*')
+      .select(`
+        *,
+        innings (
+          id,
+          innings_number,
+          batting_team,
+          total_runs,
+          wickets,
+          overs,
+          extras
+        )
+      `)
       .eq('id', params.id)
       .eq('club_id', userRole.club_id)
       .single()
@@ -41,7 +52,51 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({ match })
+    // Fetch batting cards for each innings
+    const inningsWithCards = await Promise.all(
+      (match.innings || []).map(async (innings: any) => {
+        const [battingCards, bowlingCards, fieldingCards] = await Promise.all([
+          supabase
+            .from('batting_cards')
+            .select(`
+              *,
+              players (first_name, last_name)
+            `)
+            .eq('innings_id', innings.id)
+            .order('position', { ascending: true }),
+
+          supabase
+            .from('bowling_cards')
+            .select(`
+              *,
+              players (first_name, last_name)
+            `)
+            .eq('innings_id', innings.id),
+
+          supabase
+            .from('fielding_cards')
+            .select(`
+              *,
+              players (first_name, last_name)
+            `)
+            .eq('match_id', match.id)
+        ])
+
+        return {
+          ...innings,
+          batting_cards: battingCards.data || [],
+          bowling_cards: bowlingCards.data || [],
+          fielding_cards: fieldingCards.data || []
+        }
+      })
+    )
+
+    return NextResponse.json({
+      match: {
+        ...match,
+        innings: inningsWithCards
+      }
+    })
 
   } catch (error: any) {
     console.error('Match detail API error:', error)
