@@ -142,7 +142,8 @@ export async function PATCH(
         match_date: body.match_date,
         venue: body.venue,
         match_type: body.match_type,
-        result: body.result
+        result: body.result,
+        published: body.published
       })
       .eq('id', params.id)
       .eq('club_id', userRole.club_id)
