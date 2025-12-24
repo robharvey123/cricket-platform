@@ -45,11 +45,11 @@ export async function GET(request: NextRequest) {
           batting_average,
           bowling_economy,
           matches_batted,
-          matches_bowled
+          matches_bowled,
+          season_id
         )
       `)
       .eq('club_id', userRole.club_id)
-      .eq('player_season_stats.season_id', activeSeason?.id || '')
       .order('last_name', { ascending: true })
 
     if (playersError) {
@@ -57,10 +57,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform the data to flatten season stats
-    const playersWithStats = (players || []).map(player => ({
-      ...player,
-      season_stats: player.player_season_stats?.[0] || null
-    }))
+    const playersWithStats = (players || []).map(player => {
+      // Filter stats for active season only
+      const seasonStats = (player.player_season_stats || []).find(
+        (stats: any) => stats.season_id === activeSeason?.id
+      )
+
+      return {
+        ...player,
+        season_stats: seasonStats || null
+      }
+    })
 
     return NextResponse.json({
       players: playersWithStats,

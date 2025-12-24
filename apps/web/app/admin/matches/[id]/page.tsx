@@ -121,7 +121,9 @@ export default function MatchDetailPage() {
       }
 
       const statsResult = await statsResponse.json()
-      console.log('Stats calculated:', statsResult)
+      console.log('Stats calculated:', statsResult.message)
+      console.log('Players processed:', statsResult.processed)
+      console.log('Matches processed:', statsResult.matches)
 
       // Refresh match data
       await fetchMatch()
