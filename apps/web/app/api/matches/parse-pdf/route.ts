@@ -88,14 +88,20 @@ IMPORTANT: The JSON must match this exact structure:
 
 Guidelines:
 - Extract player names carefully (first and last name)
-- For batting_team, use "home" if it's your team batting, "away" if it's the opponent
+- CRITICAL: For batting_team field - this identifies WHO is batting in each innings:
+  * batting_team="home" means Brookweald CC (the home/subscriber team) is batting
+  * batting_team="away" means the OPPONENT team is batting
+  * Look at the section headers and player names to determine which team is batting
+  * The team name in the match title (e.g., "vs Great Claydons") is the OPPONENT (away team)
+  * Brookweald CC is always the "home" team
+  * Only include batting_cards for the team that is batting, and bowling_cards for the team that is bowling
 - Parse dismissal types accurately (caught, bowled, lbw, run out, stumped, etc.)
 - If a player is "not out", set dismissal_type to null and is_out to false
 - Extract all statistics accurately (runs, balls, 4s, 6s, overs, maidens, wickets, etc.)
 - Overs should be decimal (e.g., 41.5 means 41 overs and 5 balls)
 - Extract extras as the total number
 - For match_type, infer from the context (league/cup/friendly)
-- For result, extract who won and how (e.g., "won", "lost")
+- For result, determine from Brookweald CC's perspective: "won" if Brookweald won, "lost" if Brookweald lost
 
 Return ONLY the JSON object, no additional text or explanation.`
 
