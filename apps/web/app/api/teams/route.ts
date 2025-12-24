@@ -69,11 +69,29 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
 
+    // Get active season
+    const { data: season } = await supabase
+      .from('seasons')
+      .select('id')
+      .eq('club_id', userRole.club_id)
+      .eq('is_active', true)
+      .order('start_date', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (!season) {
+      return NextResponse.json(
+        { error: 'Please create an active season first. Go to Seasons → Add Season and ensure "Active" is checked.' },
+        { status: 400 }
+      )
+    }
+
     // Create new team
     const { data: team, error: createError } = await supabase
       .from('teams')
       .insert({
         club_id: userRole.club_id,
+        season_id: season.id,
         name: body.name
       })
       .select()
