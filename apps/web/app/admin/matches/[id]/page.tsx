@@ -260,8 +260,8 @@ export default function MatchDetailPage() {
                 )}
               </div>
 
-              {/* Batting Card */}
-              {innings.batting_cards.length > 0 && (
+              {/* Batting Card - Only show for Brookweald's batting innings */}
+              {innings.batting_team === 'home' && innings.batting_cards.length > 0 && (
                 <div style={{ marginBottom: '32px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
                     Batting
@@ -313,8 +313,8 @@ export default function MatchDetailPage() {
                 </div>
               )}
 
-              {/* Bowling Card */}
-              {innings.bowling_cards.length > 0 && (
+              {/* Bowling Card - Only show for opposition's batting innings (Brookweald bowling) */}
+              {innings.batting_team === 'away' && innings.bowling_cards.length > 0 && (
                 <div>
                   <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
                     Bowling
