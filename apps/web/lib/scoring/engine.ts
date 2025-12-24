@@ -39,7 +39,7 @@ export function calcBattingPoints(
 
   // Milestones (50, 100, etc.)
   let milestonesPoints = 0
-  for (const milestone of formula.milestones) {
+  for (const milestone of (formula.milestones || [])) {
     if (stats.runs >= milestone.at) {
       milestonesPoints += milestone.bonus
     }
