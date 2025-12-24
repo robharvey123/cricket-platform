@@ -150,6 +150,9 @@ export default function MatchesPage() {
                 <th style={{ padding: '12px 16px', textAlign: 'left', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
                   Status
                 </th>
+                <th style={{ padding: '12px 16px', textAlign: 'right', fontSize: '12px', fontWeight: '600', color: '#6b7280', textTransform: 'uppercase' }}>
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -157,21 +160,31 @@ export default function MatchesPage() {
                 <tr
                   key={match.id}
                   style={{
-                    borderBottom: '1px solid #e5e7eb',
-                    cursor: 'pointer'
+                    borderBottom: '1px solid #e5e7eb'
                   }}
-                  onClick={() => router.push(`/admin/matches/${match.id}`)}
                 >
-                  <td style={{ padding: '16px', fontSize: '14px' }}>
+                  <td
+                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/matches/${match.id}`)}
+                  >
                     {new Date(match.match_date).toLocaleDateString()}
                   </td>
-                  <td style={{ padding: '16px', fontSize: '14px', fontWeight: '500' }}>
+                  <td
+                    style={{ padding: '16px', fontSize: '14px', fontWeight: '500', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/matches/${match.id}`)}
+                  >
                     {match.opponent_name}
                   </td>
-                  <td style={{ padding: '16px', fontSize: '14px', color: '#6b7280' }}>
+                  <td
+                    style={{ padding: '16px', fontSize: '14px', color: '#6b7280', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/matches/${match.id}`)}
+                  >
                     {match.venue || '-'}
                   </td>
-                  <td style={{ padding: '16px', fontSize: '14px' }}>
+                  <td
+                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/matches/${match.id}`)}
+                  >
                     <span style={{
                       padding: '4px 8px',
                       background: '#f3f4f6',
@@ -182,7 +195,10 @@ export default function MatchesPage() {
                       {match.match_type}
                     </span>
                   </td>
-                  <td style={{ padding: '16px', fontSize: '14px' }}>
+                  <td
+                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/matches/${match.id}`)}
+                  >
                     <span style={{
                       padding: '4px 8px',
                       background: match.result === 'won' ? '#dcfce7' : match.result === 'lost' ? '#fee2e2' : '#f3f4f6',
@@ -195,7 +211,10 @@ export default function MatchesPage() {
                       {match.result}
                     </span>
                   </td>
-                  <td style={{ padding: '16px', fontSize: '14px' }}>
+                  <td
+                    style={{ padding: '16px', fontSize: '14px', cursor: 'pointer' }}
+                    onClick={() => router.push(`/admin/matches/${match.id}`)}
+                  >
                     <span style={{
                       padding: '4px 8px',
                       background: match.published ? '#dbeafe' : '#fef3c7',
@@ -206,6 +225,26 @@ export default function MatchesPage() {
                     }}>
                       {match.published ? 'Published' : 'Draft'}
                     </span>
+                  </td>
+                  <td style={{ padding: '16px', fontSize: '14px', textAlign: 'right' }}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        router.push(`/admin/matches/${match.id}/edit`)
+                      }}
+                      style={{
+                        padding: '6px 12px',
+                        background: '#7c3aed',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontSize: '13px',
+                        fontWeight: '500',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Edit
+                    </button>
                   </td>
                 </tr>
               ))}

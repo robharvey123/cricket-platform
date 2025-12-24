@@ -134,7 +134,7 @@ export default function MatchDetailPage() {
 
   return (
     <div style={{ padding: '40px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Link
           href="/admin/matches"
           style={{
@@ -144,6 +144,20 @@ export default function MatchDetailPage() {
           }}
         >
           ← Back to Matches
+        </Link>
+        <Link
+          href={`/admin/matches/${matchId}/edit`}
+          style={{
+            padding: '8px 16px',
+            background: '#7c3aed',
+            color: 'white',
+            borderRadius: '6px',
+            textDecoration: 'none',
+            fontSize: '14px',
+            fontWeight: '500'
+          }}
+        >
+          Edit Match
         </Link>
       </div>
 
