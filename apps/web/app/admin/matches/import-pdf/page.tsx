@@ -212,6 +212,17 @@ export default function ImportPDFPage() {
               {parsing ? 'Parsing with AI...' : 'Parse with AI'}
             </button>
           </div>
+
+          {parsing && (
+            <div className={styles.progressContainer}>
+              <div className={styles.progressBar}>
+                <div className={styles.progressBarFill}></div>
+              </div>
+              <p className={styles.progressText}>
+                AI is analyzing the scorecard... This may take 10-30 seconds
+              </p>
+            </div>
+          )}
         </section>
 
         {error && (

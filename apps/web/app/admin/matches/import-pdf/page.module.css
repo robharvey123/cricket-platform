@@ -235,6 +235,73 @@
   margin-top: 8px;
 }
 
+/* Progress Bar Styles */
+.progressContainer {
+  margin-top: 24px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed 0%, #a78bfa 50%, #7c3aed 100%);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  animation: progressPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+}
+
+.progressText {
+  font-size: 14px;
+  color: #475569;
+  text-align: center;
+  margin: 0;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+@keyframes progressPulse {
+  0% {
+    background-position: 0% 50%;
+    width: 30%;
+  }
+  50% {
+    background-position: 100% 50%;
+    width: 70%;
+  }
+  100% {
+    background-position: 0% 50%;
+    width: 30%;
+  }
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
