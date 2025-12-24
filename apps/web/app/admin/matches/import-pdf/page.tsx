@@ -35,44 +35,46 @@ export default function ImportPDFPage() {
     const issues: ValidationIssue[] = []
 
     // Validate match info
-    if (!data.opponent || data.opponent.trim() === '') {
+    if (!data.match?.opponent_name || data.match.opponent_name.trim() === '') {
       issues.push({ type: 'error', field: 'opponent', message: 'Opponent name is missing' })
     }
-    if (!data.date) {
+    if (!data.match?.match_date) {
       issues.push({ type: 'error', field: 'date', message: 'Match date is missing' })
     }
-    if (!data.team_name) {
-      issues.push({ type: 'warning', field: 'team_name', message: 'Team name not specified' })
+
+    // Validate innings exist
+    if (!data.innings || data.innings.length === 0) {
+      issues.push({ type: 'error', field: 'innings', message: 'No innings data found' })
+      return issues
     }
 
-    // Validate batting
-    if (data.batting_first?.batting_card) {
-      const battingCard = data.batting_first.batting_card
-      if (battingCard.length === 0) {
-        issues.push({ type: 'error', field: 'batting', message: 'No batting data found' })
+    // Validate batting and bowling for each innings
+    data.innings.forEach((innings: any, inningsIdx: number) => {
+      const battingCards = innings.batting_cards || []
+      const bowlingCards = innings.bowling_cards || []
+
+      if (battingCards.length === 0) {
+        issues.push({ type: 'error', field: `innings[${inningsIdx}].batting`, message: 'No batting data found' })
       }
-      battingCard.forEach((player: any, idx: number) => {
-        if (!player.name || player.name.trim() === '') {
+
+      battingCards.forEach((player: any, idx: number) => {
+        if (!player.player_name || player.player_name.trim() === '') {
           issues.push({ type: 'error', field: `batting[${idx}]`, message: 'Player name missing' })
         }
         if (player.runs > 200) {
           issues.push({ type: 'warning', field: `batting[${idx}]`, message: `Unusually high score: ${player.runs} runs` })
         }
       })
-    }
 
-    // Validate bowling
-    if (data.batting_first?.bowling_card) {
-      const bowlingCard = data.batting_first.bowling_card
-      bowlingCard.forEach((player: any, idx: number) => {
-        if (!player.name || player.name.trim() === '') {
+      bowlingCards.forEach((player: any, idx: number) => {
+        if (!player.player_name || player.player_name.trim() === '') {
           issues.push({ type: 'error', field: `bowling[${idx}]`, message: 'Player name missing' })
         }
         if (player.wickets > 10) {
           issues.push({ type: 'warning', field: `bowling[${idx}]`, message: `Unusually high wickets: ${player.wickets}` })
         }
       })
-    }
+    })
 
     return issues
   }
@@ -338,8 +340,8 @@ export default function ImportPDFPage() {
                     </label>
                     <input
                       type="text"
-                      value={editedData.opponent || ''}
-                      onChange={(e) => updateField('opponent', e.target.value)}
+                      value={editedData.match?.opponent_name || ''}
+                      onChange={(e) => updateField('match.opponent_name', e.target.value)}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -356,8 +358,8 @@ export default function ImportPDFPage() {
                     </label>
                     <input
                       type="date"
-                      value={editedData.date || ''}
-                      onChange={(e) => updateField('date', e.target.value)}
+                      value={editedData.match?.match_date || ''}
+                      onChange={(e) => updateField('match.match_date', e.target.value)}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -370,12 +372,11 @@ export default function ImportPDFPage() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
-                      Team Name
+                      Match Type
                     </label>
-                    <input
-                      type="text"
-                      value={editedData.team_name || ''}
-                      onChange={(e) => updateField('team_name', e.target.value)}
+                    <select
+                      value={editedData.match?.match_type || 'league'}
+                      onChange={(e) => updateField('match.match_type', e.target.value)}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -384,7 +385,11 @@ export default function ImportPDFPage() {
                         fontSize: '14px',
                         boxSizing: 'border-box'
                       }}
-                    />
+                    >
+                      <option value="league">League</option>
+                      <option value="cup">Cup</option>
+                      <option value="friendly">Friendly</option>
+                    </select>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
@@ -392,8 +397,8 @@ export default function ImportPDFPage() {
                     </label>
                     <input
                       type="text"
-                      value={editedData.venue || ''}
-                      onChange={(e) => updateField('venue', e.target.value)}
+                      value={editedData.match?.venue || ''}
+                      onChange={(e) => updateField('match.venue', e.target.value)}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -404,80 +409,128 @@ export default function ImportPDFPage() {
                       }}
                     />
                   </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', marginBottom: '4px' }}>
+                      Result
+                    </label>
+                    <select
+                      value={editedData.match?.result || 'won'}
+                      onChange={(e) => updateField('match.result', e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '4px',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <option value="won">Won</option>
+                      <option value="lost">Lost</option>
+                      <option value="tied">Tied</option>
+                      <option value="draw">Draw</option>
+                      <option value="abandoned">Abandoned</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Batting Card */}
-              {editedData.batting_first?.batting_card && (
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
-                    Batting Card ({editedData.batting_first.batting_card.length} players)
+              {/* Innings */}
+              {editedData.innings?.map((innings: any, inningsIdx: number) => (
+                <div key={inningsIdx} style={{ marginBottom: '32px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '16px', color: '#7c3aed' }}>
+                    Innings {innings.innings_number} - {innings.batting_team === 'home' ? 'Our Team' : 'Opposition'}
                   </h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                          <th style={{ padding: '8px', textAlign: 'left' }}>Player</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Runs</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Balls</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>4s</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>6s</th>
-                          <th style={{ padding: '8px', textAlign: 'left' }}>Dismissal</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {editedData.batting_first.batting_card.map((player: any, idx: number) => (
-                          <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                            <td style={{ padding: '8px' }}>{player.name}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.runs}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.balls || '-'}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.fours || 0}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.sixes || 0}</td>
-                            <td style={{ padding: '8px', fontSize: '12px' }}>{player.dismissal || '-'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
 
-              {/* Bowling Card */}
-              {editedData.batting_first?.bowling_card && (
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>
-                    Bowling Card ({editedData.batting_first.bowling_card.length} players)
-                  </h3>
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
-                          <th style={{ padding: '8px', textAlign: 'left' }}>Player</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Overs</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Maidens</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Runs</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Wickets</th>
-                          <th style={{ padding: '8px', textAlign: 'center' }}>Econ</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {editedData.batting_first.bowling_card.map((player: any, idx: number) => (
-                          <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                            <td style={{ padding: '8px' }}>{player.name}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.overs}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.maidens || 0}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.runs}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>{player.wickets}</td>
-                            <td style={{ padding: '8px', textAlign: 'center' }}>
-                              {player.overs > 0 ? (player.runs / player.overs).toFixed(2) : '-'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  {/* Innings Summary */}
+                  <div style={{
+                    background: '#f9fafb',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    marginBottom: '16px',
+                    fontSize: '14px'
+                  }}>
+                    <strong>{innings.total_runs}/{innings.wickets}</strong> in {innings.overs} overs
+                    {innings.extras > 0 && <span style={{ marginLeft: '12px', color: '#6b7280' }}>
+                      (Extras: {innings.extras})
+                    </span>}
                   </div>
+
+                  {/* Batting Card */}
+                  {innings.batting_cards && innings.batting_cards.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                        Batting ({innings.batting_cards.length} players)
+                      </h4>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                              <th style={{ padding: '8px', textAlign: 'left' }}>Player</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Runs</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Balls</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>4s</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>6s</th>
+                              <th style={{ padding: '8px', textAlign: 'left' }}>Dismissal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {innings.batting_cards.map((player: any, idx: number) => (
+                              <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                <td style={{ padding: '8px' }}>{player.player_name}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.runs}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.balls_faced || '-'}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.fours || 0}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.sixes || 0}</td>
+                                <td style={{ padding: '8px', fontSize: '12px' }}>
+                                  {player.is_out ? player.dismissal_text : 'Not Out'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bowling Card */}
+                  {innings.bowling_cards && innings.bowling_cards.length > 0 && (
+                    <div style={{ marginBottom: '24px' }}>
+                      <h4 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '8px' }}>
+                        Bowling ({innings.bowling_cards.length} players)
+                      </h4>
+                      <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', fontSize: '13px', borderCollapse: 'collapse' }}>
+                          <thead>
+                            <tr style={{ background: '#f9fafb', borderBottom: '2px solid #e5e7eb' }}>
+                              <th style={{ padding: '8px', textAlign: 'left' }}>Player</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Overs</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Maidens</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Runs</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Wickets</th>
+                              <th style={{ padding: '8px', textAlign: 'center' }}>Econ</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {innings.bowling_cards.map((player: any, idx: number) => (
+                              <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                <td style={{ padding: '8px' }}>{player.player_name}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.overs}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.maidens || 0}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.runs_conceded}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>{player.wickets}</td>
+                                <td style={{ padding: '8px', textAlign: 'center' }}>
+                                  {player.overs > 0 ? (player.runs_conceded / player.overs).toFixed(2) : '-'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              ))}
             </>
           )}
 
