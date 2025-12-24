@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     const clubId = userRole.club_id
 
     // Get active scoring config
-    const { data: config } = await supabase
+    let { data: config } = await supabase
       .from('scoring_configs')
       .select('*')
       .eq('club_id', clubId)
@@ -36,8 +36,27 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single()
 
+    // If no config exists, create a default one
     if (!config) {
-      return NextResponse.json({ error: 'No active scoring config found' }, { status: 404 })
+      const { DEFAULT_FORMULA } = await import('../../../../lib/scoring/engine')
+
+      const { data: newConfig, error: createError } = await supabase
+        .from('scoring_configs')
+        .insert({
+          club_id: clubId,
+          name: 'Default Scoring',
+          version: 1,
+          formula_json: DEFAULT_FORMULA,
+          is_active: true
+        })
+        .select()
+        .single()
+
+      if (createError || !newConfig) {
+        return NextResponse.json({ error: 'Failed to create default scoring config' }, { status: 500 })
+      }
+
+      config = newConfig
     }
 
     const formula = config.formula_json

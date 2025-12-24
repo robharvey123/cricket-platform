@@ -109,10 +109,19 @@ export default function MatchDetailPage() {
       }
 
       // Recalculate stats
-      await fetch('/api/stats/calculate', {
+      const statsResponse = await fetch('/api/stats/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       })
+
+      if (!statsResponse.ok) {
+        const statsData = await statsResponse.json()
+        console.error('Stats calculation error:', statsData)
+        throw new Error(statsData.error || 'Failed to calculate stats')
+      }
+
+      const statsResult = await statsResponse.json()
+      console.log('Stats calculated:', statsResult)
 
       // Refresh match data
       await fetchMatch()
