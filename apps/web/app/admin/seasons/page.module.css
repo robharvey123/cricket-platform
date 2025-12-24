@@ -187,6 +187,30 @@
   composes: alertError from '../../ui/theme.module.css';
 }
 
+.alertSuccess {
+  composes: alertSuccess from '../../ui/theme.module.css';
+}
+
+.helpBox {
+  padding: 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 12px;
+}
+
+.helpBox h3 {
+  font-size: 16px;
+  margin-bottom: 8px;
+  color: #1e40af;
+}
+
+.helpBox p {
+  font-size: 14px;
+  color: #1e3a8a;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
 @media (max-width: 768px) {
   .formRow {
     grid-template-columns: 1fr;

@@ -18,6 +18,8 @@ export default function SeasonsPage() {
   const [error, setError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editingSeason, setEditingSeason] = useState<Season | null>(null)
+  const [fixing, setFixing] = useState(false)
+  const [fixSuccess, setFixSuccess] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     start_date: '',
@@ -124,6 +126,31 @@ export default function SeasonsPage() {
     }
   }
 
+  const fixExistingMatches = async () => {
+    setFixing(true)
+    setError(null)
+    setFixSuccess(null)
+
+    try {
+      const response = await fetch('/api/matches/fix-season', {
+        method: 'POST'
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fix matches')
+      }
+
+      setFixSuccess(`Updated ${data.updated} match(es) to use the active season`)
+      setTimeout(() => setFixSuccess(null), 5000)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setFixing(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -161,6 +188,31 @@ export default function SeasonsPage() {
           <div className={`${styles.alert} ${styles.alertError}`}>
             {error}
           </div>
+        )}
+
+        {fixSuccess && (
+          <div className={`${styles.alert} ${styles.alertSuccess}`}>
+            {fixSuccess}
+          </div>
+        )}
+
+        {seasons.some(s => s.is_active) && (
+          <section className={styles.card}>
+            <div className={styles.helpBox}>
+              <h3>Have existing matches?</h3>
+              <p>
+                If you imported matches before creating an active season, click below to update them.
+                This ensures all your matches are linked to the active season for stats tracking.
+              </p>
+              <button
+                onClick={fixExistingMatches}
+                disabled={fixing}
+                className={styles.secondaryButton}
+              >
+                {fixing ? 'Updating...' : 'Update Existing Matches'}
+              </button>
+            </div>
+          </section>
         )}
 
         {showForm && (
