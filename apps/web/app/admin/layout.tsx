@@ -14,8 +14,10 @@ export default function AdminLayout({
     { name: 'Dashboard', href: '/admin' },
     { name: 'Matches', href: '/admin/matches' },
     { name: 'Players', href: '/admin/players' },
+    { name: 'Leaderboards', href: '/admin/leaderboards' },
     { name: 'Teams', href: '/admin/teams' },
     { name: 'Seasons', href: '/admin/seasons' },
+    { name: 'Scoring', href: '/admin/scoring' },
   ]
 
   return (
