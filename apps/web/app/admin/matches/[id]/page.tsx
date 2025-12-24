@@ -66,6 +66,7 @@ export default function MatchDetailPage() {
   const matchId = params.id as string
   const [match, setMatch] = useState<Match | null>(null)
   const [loading, setLoading] = useState(true)
+  const [publishing, setPublishing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -86,6 +87,39 @@ export default function MatchDetailPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handlePublish = async () => {
+    if (!match) return
+
+    setPublishing(true)
+    setError(null)
+
+    try {
+      // Update match to published
+      const response = await fetch(`/api/matches/${matchId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...match, published: true })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to publish match')
+      }
+
+      // Recalculate stats
+      await fetch('/api/stats/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      // Refresh match data
+      await fetchMatch()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setPublishing(false)
     }
   }
 
@@ -123,9 +157,20 @@ export default function MatchDetailPage() {
           <Link href="/admin/matches" className={styles.backLink}>
             ← Back to Matches
           </Link>
-          <Link href={`/admin/matches/${matchId}/edit`} className={styles.primaryButton}>
-            Edit Match
-          </Link>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {!match.published && (
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                className={styles.publishButton}
+              >
+                {publishing ? 'Publishing...' : 'Publish Match'}
+              </button>
+            )}
+            <Link href={`/admin/matches/${matchId}/edit`} className={styles.primaryButton}>
+              Edit Match
+            </Link>
+          </div>
         </div>
 
         <section className={styles.card}>
