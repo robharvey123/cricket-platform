@@ -221,6 +221,79 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // ZERO-ROWS RULE: Ensure ALL team players appear in stats (even if didn't bat/bowl)
+    // Get all players in the team
+    const { data: teamPlayers } = await supabase
+      .from('team_players')
+      .select('player_id')
+      .eq('team_id', team.id)
+
+    const allPlayerIds = new Set(teamPlayers?.map(tp => tp.player_id) || [])
+
+    // Get players who already have batting cards
+    const { data: existingBatting } = await supabase
+      .from('batting_cards')
+      .select('player_id')
+      .eq('match_id', match.id)
+
+    const battedPlayerIds = new Set(existingBatting?.map(b => b.player_id) || [])
+
+    // Get players who already have bowling cards
+    const { data: existingBowling } = await supabase
+      .from('bowling_cards')
+      .select('player_id')
+      .eq('match_id', match.id)
+
+    const bowledPlayerIds = new Set(existingBowling?.map(b => b.player_id) || [])
+
+    // Create zero-rows for players who didn't bat
+    for (const playerId of allPlayerIds) {
+      if (!battedPlayerIds.has(playerId)) {
+        await supabase.from('batting_cards').insert({
+          match_id: match.id,
+          player_id: playerId,
+          runs: 0,
+          balls_faced: 0,
+          fours: 0,
+          sixes: 0,
+          derived: true, // Mark as auto-generated
+        })
+      }
+    }
+
+    // Create zero-rows for players who didn't bowl
+    for (const playerId of allPlayerIds) {
+      if (!bowledPlayerIds.has(playerId)) {
+        await supabase.from('bowling_cards').insert({
+          match_id: match.id,
+          player_id: playerId,
+          overs: 0,
+          maidens: 0,
+          runs_conceded: 0,
+          wickets: 0,
+          wides: 0,
+          no_balls: 0,
+          derived: true, // Mark as auto-generated
+        })
+      }
+    }
+
+    // Create zero-row fielding cards for all players
+    for (const playerId of allPlayerIds) {
+      await supabase.from('fielding_cards').insert({
+        match_id: match.id,
+        player_id: playerId,
+        catches: 0,
+        stumpings: 0,
+        runouts: 0,
+        drops: 0,
+        misfields: 0,
+        derived: true, // Mark as auto-generated
+      })
+    }
+
+    console.log(`✓ Created zero-rows for ${allPlayerIds.size} team players`)
+
     return NextResponse.json({
       success: true,
       matchId: match.id,
