@@ -23,17 +23,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Club not found' }, { status: 404 })
     }
 
-    // Get first season and team (for MVP, we'll improve this later)
+    // Get active season
     const { data: season } = await supabase
       .from('seasons')
       .select('id')
       .eq('club_id', userRole.club_id)
+      .eq('is_active', true)
+      .order('start_date', { ascending: false })
       .limit(1)
       .single()
 
     if (!season) {
       return NextResponse.json(
-        { error: 'Please create a season first. Go to Seasons → Add Season.' },
+        { error: 'Please create an active season first. Go to Seasons → Add Season and ensure "Active" is checked.' },
         { status: 400 }
       )
     }
