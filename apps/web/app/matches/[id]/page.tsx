@@ -10,6 +10,14 @@ interface Player {
   last_name: string
 }
 
+interface BattingCardPlayer extends Player {
+  id?: string
+}
+
+interface BowlingCardPlayer extends Player {
+  id?: string
+}
+
 interface BattingCard {
   id: string
   position: number | null
@@ -21,7 +29,8 @@ interface BattingCard {
   is_out: boolean
   strike_rate: number | null
   derived: boolean
-  players: Player
+  player_id?: string
+  players: BattingCardPlayer
 }
 
 interface BowlingCard {
@@ -32,7 +41,8 @@ interface BowlingCard {
   wickets: number
   economy: number | null
   derived: boolean
-  players: Player
+  player_id?: string
+  players: BowlingCardPlayer
 }
 
 interface Innings {
@@ -205,8 +215,8 @@ export default function PublicMatchDetailPage() {
                             .map((card) => (
                               <tr key={card.id}>
                                 <td className={styles.playerName}>
-                                  {innings.batting_team === 'home' ? (
-                                    <Link href={`/players/${card.players.player_id || '#'}`} className={styles.playerLink}>
+                                  {innings.batting_team === 'home' && card.player_id ? (
+                                    <Link href={`/players/${card.player_id}`} className={styles.playerLink}>
                                       {card.players.first_name} {card.players.last_name}
                                     </Link>
                                   ) : (
@@ -250,8 +260,8 @@ export default function PublicMatchDetailPage() {
                             .map((card) => (
                               <tr key={card.id}>
                                 <td className={styles.playerName}>
-                                  {innings.batting_team === 'away' ? (
-                                    <Link href={`/players/${card.players.player_id || '#'}`} className={styles.playerLink}>
+                                  {innings.batting_team === 'away' && card.player_id ? (
+                                    <Link href={`/players/${card.player_id}`} className={styles.playerLink}>
                                       {card.players.first_name} {card.players.last_name}
                                     </Link>
                                   ) : (
