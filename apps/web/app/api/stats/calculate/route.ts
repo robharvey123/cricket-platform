@@ -61,6 +61,9 @@ export async function POST(request: NextRequest) {
 
     const formula = config.formula_json
 
+    const normalizeName = (value: string) =>
+      value.toLowerCase().replace(/\s+/g, ' ').trim()
+
     // Get active season
     const { data: season } = await supabase
       .from('seasons')
@@ -75,11 +78,55 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No active season found' }, { status: 404 })
     }
 
-    // Get all matches for the active season
-    const { data: matches } = await supabase
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('name')
+      .eq('id', clubId)
+      .single()
+
+    const clubName = normalizeName(club?.name || '')
+
+    const { data: teams } = await supabase
+      .from('teams')
+      .select('id, name')
+      .eq('club_id', clubId)
+
+    const teamNameById = new Map<string, string>()
+    teams?.forEach((team) => {
+      teamNameById.set(team.id, normalizeName(team.name || ''))
+    })
+
+    const inferBattingTeam = (value: string, opponentName: string, teamName: string) => {
+      const normalized = normalizeName(value)
+      if (normalized === 'home' || normalized === 'away') {
+        return normalized
+      }
+      if (normalized.includes('opposition') || normalized.includes('away')) {
+        return 'away'
+      }
+      if (normalized.includes('home')) {
+        return 'home'
+      }
+      if (
+        normalized.includes('brookweald') ||
+        (clubName && normalized.includes(clubName)) ||
+        (teamName && normalized.includes(teamName))
+      ) {
+        return 'home'
+      }
+      if (opponentName && normalized.includes(opponentName)) {
+        return 'away'
+      }
+      return normalized
+    }
+
+    // Get all matches for the active season (or missing season_id)
+    let { data: matches, error: matchesError } = await supabase
       .from('matches')
       .select(`
         id,
+        team_id,
+        opponent_name,
         match_date,
         innings (
           id,
@@ -108,23 +155,73 @@ export async function POST(request: NextRequest) {
             wickets,
             wides,
             no_balls
-          ),
-          fielding_cards (
-            id,
-            player_id,
-            catches,
-            stumpings,
-            run_outs,
-            drops,
-            misfields
           )
         )
       `)
       .eq('club_id', clubId)
-      .eq('season_id', season.id)
+      .or(`season_id.eq.${season.id},season_id.is.null`)
+
+    if (matchesError) {
+      console.error('Matches fetch error (stats):', matchesError)
+    }
 
     if (!matches || matches.length === 0) {
-      return NextResponse.json({ message: 'No matches found', processed: 0 })
+      const fallback = await supabase
+        .from('matches')
+        .select(`
+          id,
+          team_id,
+          opponent_name,
+          match_date,
+          innings (
+            id,
+            innings_number,
+            batting_team,
+            total_runs,
+            wickets,
+            overs,
+            extras,
+            batting_cards (
+              id,
+              player_id,
+              runs,
+              balls_faced,
+              fours,
+              sixes,
+              is_out,
+              dismissal_type
+            ),
+            bowling_cards (
+              id,
+              player_id,
+              overs,
+              maidens,
+              runs_conceded,
+              wickets,
+              wides,
+              no_balls
+            )
+          )
+        )
+        `)
+        .eq('club_id', clubId)
+
+      if (fallback.error) {
+        console.error('Matches fallback error (stats):', fallback.error)
+      }
+
+      matches = fallback.data || []
+    }
+
+    if (!matches || matches.length === 0) {
+      return NextResponse.json({
+        message: 'No matches found',
+        processed: 0,
+        debug: {
+          clubId,
+          seasonId: season.id
+        }
+      })
     }
 
     // Calculate stats for each player
@@ -132,9 +229,45 @@ export async function POST(request: NextRequest) {
     const playerMatchPerformance: any[] = []
 
     for (const match of matches) {
+      const { data: fieldingCards, error: fieldingError } = await supabase
+        .from('fielding_cards')
+        .select('player_id, catches, stumpings, run_outs, drops, misfields')
+        .eq('match_id', match.id)
+
+      if (fieldingError) {
+        console.error('Fielding cards fetch error:', fieldingError)
+      }
+
+      const fieldingByPlayer = new Map<string, {
+        catches: number
+        stumpings: number
+        runouts: number
+        drops: number
+        misfields: number
+      }>()
+
+      fieldingCards?.forEach((card) => {
+        fieldingByPlayer.set(card.player_id, {
+          catches: card.catches || 0,
+          stumpings: card.stumpings || 0,
+          runouts: card.run_outs || 0,
+          drops: card.drops || 0,
+          misfields: card.misfields || 0,
+        })
+      })
+
+      const opponentName = normalizeName(match.opponent_name || '')
+      const teamName = teamNameById.get(match.team_id) || ''
+
       for (const innings of match.innings || []) {
+        const normalizedBattingTeam = inferBattingTeam(
+          innings.batting_team || '',
+          opponentName,
+          teamName
+        )
+        const battingTeam = normalizedBattingTeam === 'away' ? 'away' : 'home'
         // Process batting cards (only for home team - our players)
-        if (innings.batting_team === 'home') {
+        if (battingTeam === 'home') {
           for (const card of innings.batting_cards || []) {
             const playerId = card.player_id
             if (!playerId) continue
@@ -234,7 +367,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Process bowling cards (only for away team innings - our players bowling)
-        if (innings.batting_team === 'away') {
+        if (battingTeam === 'away') {
           for (const card of innings.bowling_cards || []) {
             const playerId = card.player_id
             if (!playerId) continue
@@ -337,55 +470,88 @@ export async function POST(request: NextRequest) {
         }
 
         // Process fielding cards
-        for (const card of innings.fielding_cards || []) {
-          const playerId = card.player_id
-          if (!playerId) continue
+      }
 
-          if (!playerStats.has(playerId)) continue
-
-          const stats = playerStats.get(playerId)!
-
-          stats.catches += card.catches || 0
-          stats.stumpings += card.stumpings || 0
-          stats.run_outs += card.run_outs || 0
-          stats.drops += card.drops || 0
-
-          // Calculate fielding points
-          const fieldingPoints = calcFieldingPoints(formula.fielding, {
-            catches: card.catches || 0,
-            stumpings: card.stumpings || 0,
-            runouts: card.run_outs || 0,
-            drops: card.drops || 0,
-            misfields: card.misfields || 0
+      // Process fielding cards (match-level)
+      for (const [playerId, card] of fieldingByPlayer.entries()) {
+        if (!playerStats.has(playerId)) {
+          playerStats.set(playerId, {
+            player_id: playerId,
+            season_id: season.id,
+            club_id: clubId,
+            matches_batted: 0,
+            innings_batted: 0,
+            not_outs: 0,
+            runs_scored: 0,
+            balls_faced: 0,
+            fours: 0,
+            sixes: 0,
+            highest_score: 0,
+            fifties: 0,
+            hundreds: 0,
+            ducks: 0,
+            matches_bowled: 0,
+            innings_bowled: 0,
+            overs_bowled: 0,
+            maidens: 0,
+            runs_conceded: 0,
+            wickets: 0,
+            best_bowling_wickets: 0,
+            best_bowling_runs: 999,
+            three_fors: 0,
+            five_fors: 0,
+            catches: 0,
+            stumpings: 0,
+            run_outs: 0,
+            drops: 0,
+            batting_points: 0,
+            bowling_points: 0,
+            fielding_points: 0,
+            total_points: 0,
+            match_performances: new Map()
           })
-
-          stats.fielding_points += fieldingPoints.points
-
-          // Track per-match performance
-          if (!stats.match_performances.has(match.id)) {
-            stats.match_performances.set(match.id, {
-              runs: 0,
-              balls_faced: 0,
-              fours: 0,
-              sixes: 0,
-              wickets: 0,
-              overs_bowled: 0,
-              runs_conceded: 0,
-              maidens: 0,
-              catches: 0,
-              stumpings: 0,
-              run_outs: 0,
-              batting_points: 0,
-              bowling_points: 0,
-              fielding_points: 0
-            })
-          }
-          const matchPerf = stats.match_performances.get(match.id)
-          matchPerf.catches += card.catches || 0
-          matchPerf.stumpings += card.stumpings || 0
-          matchPerf.run_outs += card.run_outs || 0
-          matchPerf.fielding_points += fieldingPoints.points
         }
+
+        const stats = playerStats.get(playerId)!
+        stats.catches += card.catches
+        stats.stumpings += card.stumpings
+        stats.run_outs += card.runouts
+        stats.drops += card.drops
+
+        const fieldingPoints = calcFieldingPoints(formula.fielding, {
+          catches: card.catches,
+          stumpings: card.stumpings,
+          runouts: card.runouts,
+          drops: card.drops,
+          misfields: card.misfields
+        })
+
+        stats.fielding_points += fieldingPoints.points
+
+        if (!stats.match_performances.has(match.id)) {
+          stats.match_performances.set(match.id, {
+            runs: 0,
+            balls_faced: 0,
+            fours: 0,
+            sixes: 0,
+            wickets: 0,
+            overs_bowled: 0,
+            runs_conceded: 0,
+            maidens: 0,
+            catches: 0,
+            stumpings: 0,
+            run_outs: 0,
+            batting_points: 0,
+            bowling_points: 0,
+            fielding_points: 0
+          })
+        }
+
+        const matchPerf = stats.match_performances.get(match.id)
+        matchPerf.catches += card.catches
+        matchPerf.stumpings += card.stumpings
+        matchPerf.run_outs += card.runouts
+        matchPerf.fielding_points += fieldingPoints.points
       }
 
       // Track unique matches played

@@ -1,9 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import styles from './page.module.css'
+
+type Team = {
+  id: string
+  name: string
+}
 
 type ValidationIssue = {
   type: 'warning' | 'error'
@@ -20,7 +25,31 @@ export default function ImportPDFPage() {
   const [importing, setImporting] = useState(false)
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([])
   const [showRawJson, setShowRawJson] = useState(false)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('')
   const router = useRouter()
+
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const response = await fetch('/api/teams')
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch teams')
+        }
+
+        setTeams(data.teams || [])
+        if (data.teams && data.teams.length > 0) {
+          setSelectedTeamId(data.teams[0].id)
+        }
+      } catch (err: any) {
+        setError(err.message)
+      }
+    }
+
+    fetchTeams()
+  }, [])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -130,6 +159,11 @@ export default function ImportPDFPage() {
   const handleImport = async () => {
     if (!editedData) return
 
+    if (!selectedTeamId) {
+      setError('Please select a team before importing')
+      return
+    }
+
     // Re-validate before import
     const issues = validateParsedData(editedData)
     const errors = issues.filter(i => i.type === 'error')
@@ -146,7 +180,7 @@ export default function ImportPDFPage() {
       const response = await fetch('/api/matches/import-from-parsed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedData),
+        body: JSON.stringify({ ...editedData, team_id: selectedTeamId }),
       })
 
       const data = await response.json()
@@ -189,6 +223,23 @@ export default function ImportPDFPage() {
           </div>
 
           <div className={styles.uploadRow}>
+            <label className={styles.fieldLabel}>
+              Team
+              <select
+                value={selectedTeamId}
+                onChange={(e) => setSelectedTeamId(e.target.value)}
+                className={styles.field}
+              >
+                {teams.length === 0 && (
+                  <option value="">No teams found</option>
+                )}
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <input
               type="file"
               accept=".pdf"

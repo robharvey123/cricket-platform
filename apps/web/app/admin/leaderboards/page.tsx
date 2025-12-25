@@ -37,6 +37,8 @@ export default function LeaderboardsPage() {
   const [activeSeason, setActiveSeason] = useState<{ id: string; name: string } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [recalculating, setRecalculating] = useState(false)
+  const [recalcMessage, setRecalcMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchLeaderboards()
@@ -61,6 +63,27 @@ export default function LeaderboardsPage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleRecalculate = async () => {
+    setRecalculating(true)
+    setRecalcMessage(null)
+
+    try {
+      const response = await fetch('/api/stats/calculate', { method: 'POST' })
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to recalculate stats')
+      }
+
+      setRecalcMessage(`Recalculated ${data.processed || 0} player(s) across ${data.matches || 0} match(es).`)
+      await fetchLeaderboards()
+    } catch (err: any) {
+      setRecalcMessage(err.message)
+    } finally {
+      setRecalculating(false)
     }
   }
 
@@ -97,7 +120,20 @@ export default function LeaderboardsPage() {
               {activeSeason ? `${activeSeason.name} - ` : ''}Top performers across all disciplines
             </p>
           </div>
+          <button
+            className={styles.recalcButton}
+            onClick={handleRecalculate}
+            disabled={recalculating}
+          >
+            {recalculating ? 'Recalculating...' : 'Recalculate Stats'}
+          </button>
         </header>
+
+        {recalcMessage && (
+          <div className={styles.recalcStatus}>
+            {recalcMessage}
+          </div>
+        )}
 
         {/* Tabs */}
         <div className={styles.tabs}>
@@ -154,7 +190,7 @@ export default function LeaderboardsPage() {
                           </td>
                           <td>
                             <Link href={`/admin/players/${entry.player_id}`} className={styles.link}>
-                              {entry.players.full_name}
+                              {entry.players?.full_name || 'Unknown Player'}
                             </Link>
                           </td>
                           <td><strong>{entry.runs_scored}</strong></td>
@@ -196,7 +232,7 @@ export default function LeaderboardsPage() {
                           </td>
                           <td>
                             <Link href={`/admin/players/${entry.player_id}`} className={styles.link}>
-                              {entry.players.full_name}
+                              {entry.players?.full_name || 'Unknown Player'}
                             </Link>
                           </td>
                           <td><strong>{entry.batting_average?.toFixed(2)}</strong></td>
@@ -245,7 +281,7 @@ export default function LeaderboardsPage() {
                           </td>
                           <td>
                             <Link href={`/admin/players/${entry.player_id}`} className={styles.link}>
-                              {entry.players.full_name}
+                              {entry.players?.full_name || 'Unknown Player'}
                             </Link>
                           </td>
                           <td><strong>{entry.wickets}</strong></td>
@@ -287,7 +323,7 @@ export default function LeaderboardsPage() {
                           </td>
                           <td>
                             <Link href={`/admin/players/${entry.player_id}`} className={styles.link}>
-                              {entry.players.full_name}
+                              {entry.players?.full_name || 'Unknown Player'}
                             </Link>
                           </td>
                           <td><strong>{entry.bowling_economy?.toFixed(2)}</strong></td>
@@ -336,7 +372,7 @@ export default function LeaderboardsPage() {
                         </td>
                         <td>
                           <Link href={`/admin/players/${entry.player_id}`} className={styles.link}>
-                            {entry.players.full_name}
+                            {entry.players?.full_name || 'Unknown Player'}
                           </Link>
                         </td>
                         <td><strong className={styles.highlight}>{entry.total_points.toFixed(1)}</strong></td>

@@ -146,7 +146,7 @@ export async function POST(request: Request) {
             ? {
                 catches: fieldingCard.catches || 0,
                 stumpings: fieldingCard.stumpings || 0,
-                runouts: fieldingCard.runouts || 0,
+                runouts: fieldingCard.run_outs || 0,
                 drops: fieldingCard.drops || 0,
                 misfields: fieldingCard.misfields || 0,
               }

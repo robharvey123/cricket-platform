@@ -62,9 +62,10 @@ export default function PlayersPage() {
 
     // Search filter
     if (searchTerm) {
-      filtered = filtered.filter(p =>
-        p.full_name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      filtered = filtered.filter(p => {
+        const name = (p.full_name || `${p.first_name} ${p.last_name}` || '').toLowerCase()
+        return name.includes(searchTerm.toLowerCase())
+      })
     }
 
     // Role filter
@@ -160,7 +161,9 @@ export default function PlayersPage() {
                       onClick={() => router.push(`/admin/players/${player.id}`)}
                     >
                       <td className={styles.playerName}>
-                        <strong>{player.full_name}</strong>
+                        <strong>
+                          {(player.full_name || `${player.first_name} ${player.last_name}` || 'Unknown Player').trim() || 'Unknown Player'}
+                        </strong>
                       </td>
                       <td>
                         <span className={`${styles.badge} ${styles.badgeNeutral}`}>

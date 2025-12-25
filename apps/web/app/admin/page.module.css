@@ -33,9 +33,40 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
-.card {
+.card,
+.cardLink {
   composes: card from '../ui/theme.module.css';
   animation: fadeUp 0.7s ease both;
+}
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 180px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cardLink::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, rgba(15, 23, 42, 0.08), transparent 55%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cardLink:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+}
+
+.cardLink:hover::after {
+  opacity: 1;
 }
 
 .card h2 {
@@ -46,6 +77,116 @@
 .card p {
   color: #64748b;
   font-size: 14px;
+}
+
+.cardLink h2 {
+  margin-bottom: 6px;
+}
+
+.cardCta {
+  margin-top: auto;
+  font-weight: 600;
+  color: #1d4ed8;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.insights {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.pill,
+.pillAlt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pill {
+  background: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+
+.pillAlt {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.sparklineWrap {
+  display: grid;
+  gap: 12px;
+}
+
+.sparkline {
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(180deg, rgba(226, 232, 240, 0.6), rgba(226, 232, 240, 0));
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.sparklineLine {
+  fill: none;
+  stroke: #1d4ed8;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.sparklineAxis {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+  text-align: center;
+}
+
+.barChart {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-items: end;
+  height: 160px;
+}
+
+.barWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.bar {
+  width: 100%;
+  min-height: 18px;
+  border-radius: 14px 14px 6px 6px;
+  background: linear-gradient(180deg, #10b981, #0f766e);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.25);
 }
 
 @keyframes fadeUp {

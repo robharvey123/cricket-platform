@@ -58,6 +58,25 @@
   transform: none;
 }
 
+.deleteButton {
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.deleteButton:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+  transform: translateY(-1px);
+}
+
 .card {
   composes: card from '../../../ui/theme.module.css';
 }

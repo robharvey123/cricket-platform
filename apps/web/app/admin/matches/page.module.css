@@ -73,6 +73,33 @@
   padding: 12px;
 }
 
+.filtersCard {
+  composes: card from '../../ui/theme.module.css';
+  padding: 18px 20px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filterLabel {
+  composes: fieldLabel from '../../ui/theme.module.css';
+  min-width: 180px;
+  flex: 1;
+}
+
+.searchInput {
+  composes: field from '../../ui/theme.module.css';
+  min-width: 240px;
+}
+
+.select {
+  composes: field from '../../ui/theme.module.css';
+  background: #fff;
+}
+
 .tableWrap {
   composes: tableWrap from '../../ui/theme.module.css';
   border: none;
@@ -136,10 +163,44 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .filterLabel {
+    min-width: 160px;
+  }
 }
 
 @media (max-width: 640px) {
   .emptyState {
     padding: 32px 24px;
   }
+
+  .filtersCard {
+    padding: 16px;
+  }
+
+  .searchInput {
+    min-width: 100%;
+  }
+}
+
+.actionButtons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.deleteButton {
+  padding: 6px 12px;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.deleteButton:hover {
+  background: #b91c1c;
 }

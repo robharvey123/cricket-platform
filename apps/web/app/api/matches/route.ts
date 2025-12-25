@@ -26,7 +26,13 @@ export async function GET(request: NextRequest) {
     // Fetch matches for the user's club
     const { data: matches, error: matchesError } = await supabase
       .from('matches')
-      .select('*')
+      .select(`
+        *,
+        teams (
+          id,
+          name
+        )
+      `)
       .eq('club_id', userRole.club_id)
       .order('match_date', { ascending: false })
 

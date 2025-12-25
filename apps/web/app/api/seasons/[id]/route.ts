@@ -3,9 +3,10 @@ import { createClient } from '../../../../lib/supabase/server'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
 
     // Get authenticated user
@@ -45,7 +46,7 @@ export async function PATCH(
         end_date: body.end_date,
         is_active: body.is_active
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('club_id', userRole.club_id)
       .select()
       .single()
@@ -67,9 +68,10 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
 
     // Get authenticated user
@@ -94,7 +96,7 @@ export async function DELETE(
     const { error: deleteError } = await supabase
       .from('seasons')
       .delete()
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('club_id', userRole.club_id)
 
     if (deleteError) {

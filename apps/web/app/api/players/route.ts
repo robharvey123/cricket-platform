@@ -34,7 +34,37 @@ export async function GET(request: NextRequest) {
       .single()
 
     // Fetch all players with season stats
-    const { data: players, error: playersError } = await supabase
+    const { data: teams, error: teamsError } = await supabase
+      .from('teams')
+      .select('id')
+      .eq('club_id', userRole.club_id)
+
+    if (teamsError) {
+      throw new Error(teamsError.message)
+    }
+
+    const teamIds = (teams || []).map((team) => team.id)
+
+    if (teamIds.length === 0) {
+      return NextResponse.json({ players: [], activeSeason })
+    }
+
+    const { data: teamPlayers, error: teamPlayersError } = await supabase
+      .from('team_players')
+      .select('player_id')
+      .in('team_id', teamIds)
+
+    if (teamPlayersError) {
+      throw new Error(teamPlayersError.message)
+    }
+
+    const playerIds = Array.from(new Set((teamPlayers || []).map((tp) => tp.player_id)))
+
+    if (playerIds.length === 0) {
+      return NextResponse.json({ players: [], activeSeason })
+    }
+
+    let playersQuery = supabase
       .from('players')
       .select(`
         *,
@@ -50,10 +80,25 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('club_id', userRole.club_id)
+      .in('id', playerIds)
       .order('last_name', { ascending: true })
 
+    let { data: players, error: playersError } = await playersQuery
+
     if (playersError) {
-      throw new Error(playersError.message)
+      console.warn('Players stats join failed, retrying without stats:', playersError.message)
+      const fallback = await supabase
+        .from('players')
+        .select('*')
+        .eq('club_id', userRole.club_id)
+        .in('id', playerIds)
+        .order('last_name', { ascending: true })
+
+      if (fallback.error) {
+        throw new Error(fallback.error.message)
+      }
+
+      players = fallback.data || []
     }
 
     // Transform the data to flatten season stats
@@ -65,6 +110,7 @@ export async function GET(request: NextRequest) {
 
       return {
         ...player,
+        full_name: player.full_name || `${player.first_name || ''} ${player.last_name || ''}`.trim(),
         season_stats: seasonStats || null
       }
     })

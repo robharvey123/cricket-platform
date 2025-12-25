@@ -134,6 +134,32 @@ export default function MatchDetailPage() {
     }
   }
 
+  const handleDelete = async () => {
+    if (!match) return
+
+    if (!confirm(`Are you sure you want to delete the match vs ${match.opponent_name}? This action cannot be undone.`)) {
+      return
+    }
+
+    setError(null)
+
+    try {
+      const response = await fetch(`/api/matches/${matchId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to delete match')
+      }
+
+      // Redirect to matches list
+      router.push('/admin/matches')
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
+
   if (loading) {
     return (
       <div className={styles.page}>
@@ -181,6 +207,12 @@ export default function MatchDetailPage() {
             <Link href={`/admin/matches/${matchId}/edit`} className={styles.primaryButton}>
               Edit Match
             </Link>
+            <button
+              onClick={handleDelete}
+              className={styles.deleteButton}
+            >
+              Delete Match
+            </button>
           </div>
         </div>
 
@@ -251,11 +283,13 @@ export default function MatchDetailPage() {
                   </div>
                 )}
 
-                {innings.batting_team === 'home' && innings.batting_cards.length > 0 && (
+                {innings.batting_cards.length > 0 && (
                   <div className={styles.tableBlock}>
                     <div className={styles.tableHeader}>
                       <h3>Batting</h3>
-                      <span className={styles.muted}>Brookweald innings</span>
+                      <span className={styles.muted}>
+                        {innings.batting_team === 'home' ? 'Brookweald innings' : 'Opposition innings'}
+                      </span>
                     </div>
                     <div className={styles.tableWrap}>
                       <table className={styles.table}>
@@ -294,11 +328,13 @@ export default function MatchDetailPage() {
                   </div>
                 )}
 
-                {innings.batting_team === 'away' && innings.bowling_cards.length > 0 && (
+                {innings.bowling_cards.length > 0 && (
                   <div className={styles.tableBlock}>
                     <div className={styles.tableHeader}>
                       <h3>Bowling</h3>
-                      <span className={styles.muted}>Brookweald bowlers</span>
+                      <span className={styles.muted}>
+                        {innings.batting_team === 'home' ? 'Opposition bowlers' : 'Brookweald bowlers'}
+                      </span>
                     </div>
                     <div className={styles.tableWrap}>
                       <table className={styles.table}>

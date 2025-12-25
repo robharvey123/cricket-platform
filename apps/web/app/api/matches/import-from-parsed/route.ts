@@ -40,19 +40,26 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data: team } = await supabase
+    const requestedTeamId = parsedData.team_id as string | undefined
+
+    const teamQuery = supabase
       .from('teams')
-      .select('id')
+      .select('id, name')
       .eq('club_id', userRole.club_id)
-      .limit(1)
-      .single()
+
+    const { data: team } = requestedTeamId
+      ? await teamQuery.eq('id', requestedTeamId).single()
+      : await teamQuery.limit(1).single()
 
     if (!team) {
       return NextResponse.json(
-        { error: 'Please create a team first. Go to Teams → Add Team.' },
+        { error: requestedTeamId ? 'Selected team not found for your club.' : 'Please create a team first. Go to Teams → Add Team.' },
         { status: 400 }
       )
     }
+
+    const normalizeName = (value: string) =>
+      value.toLowerCase().replace(/\s+/g, ' ').trim()
 
     // Get all players for name matching
     const { data: players } = await supabase
@@ -62,28 +69,46 @@ export async function POST(request: NextRequest) {
 
     const playerMap = new Map<string, string>()
     players?.forEach(p => {
-      const fullName = `${p.first_name} ${p.last_name}`.toLowerCase()
+      const fullName = normalizeName(`${p.first_name} ${p.last_name}`)
       playerMap.set(fullName, p.id)
     })
 
     // Helper function to get or create player
-    async function getOrCreatePlayer(playerName: string): Promise<string | null> {
-      const nameLower = playerName.toLowerCase()
+    async function getOrCreatePlayer(
+      playerName: string,
+      options: { addToTeam: boolean }
+    ): Promise<string | null> {
+      const normalized = normalizeName(playerName)
 
       // Check if player already exists in our map
-      if (playerMap.has(nameLower)) {
-        return playerMap.get(nameLower)!
+      if (playerMap.has(normalized)) {
+        return playerMap.get(normalized)!
       }
 
       // Parse name into first and last
-      const nameParts = playerName.trim().split(' ')
-      if (nameParts.length < 2) {
+      let firstName = ''
+      let lastName = ''
+      const trimmed = playerName.trim()
+      const commaSplit = trimmed.split(',').map(part => part.trim()).filter(Boolean)
+
+      if (commaSplit.length >= 2) {
+        lastName = commaSplit[0]
+        firstName = commaSplit.slice(1).join(' ')
+      } else {
+        const nameParts = trimmed.split(/\s+/).filter(Boolean)
+        if (nameParts.length === 1) {
+          firstName = nameParts[0]
+          lastName = ''
+        } else {
+          firstName = nameParts[0]
+          lastName = nameParts.slice(1).join(' ')
+        }
+      }
+
+      if (!firstName) {
         console.warn(`Invalid player name format: ${playerName}`)
         return null
       }
-
-      const firstName = nameParts[0]
-      const lastName = nameParts.slice(1).join(' ')
 
       // Create new player
       const { data: newPlayer, error: playerError } = await supabase
@@ -101,16 +126,18 @@ export async function POST(request: NextRequest) {
         return null
       }
 
-      // Add to team
-      await supabase
-        .from('team_players')
-        .insert({
-          team_id: team.id,
-          player_id: newPlayer.id,
-        })
+      // Add to team roster only for club players
+      if (options.addToTeam) {
+        await supabase
+          .from('team_players')
+          .insert({
+            team_id: team.id,
+            player_id: newPlayer.id,
+          })
+      }
 
       // Add to our map for future lookups
-      playerMap.set(nameLower, newPlayer.id)
+      playerMap.set(normalizeName(`${firstName} ${lastName}`), newPlayer.id)
       console.log(`✓ Created player: ${playerName}`)
 
       return newPlayer.id
@@ -143,13 +170,48 @@ export async function POST(request: NextRequest) {
     }
 
     // Create innings with batting and bowling cards
+    const opponentName = normalizeName(parsedData.match?.opponent_name || '')
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('name')
+      .eq('id', userRole.club_id)
+      .single()
+    const clubName = normalizeName(club?.name || '')
+    const teamName = normalizeName(team?.name || '')
+
+    const inferBattingTeam = (value: string) => {
+      const normalized = normalizeName(value)
+      if (normalized === 'home' || normalized === 'away') {
+        return normalized
+      }
+      if (normalized.includes('home')) {
+        return 'home'
+      }
+      if (normalized.includes('opposition') || normalized.includes('away')) {
+        return 'away'
+      }
+      if (
+        normalized.includes('brookweald') ||
+        (clubName && normalized.includes(clubName)) ||
+        (teamName && normalized.includes(teamName))
+      ) {
+        return 'home'
+      }
+      if (opponentName && normalized.includes(opponentName)) {
+        return 'away'
+      }
+      return normalized
+    }
+
     for (const inningsData of parsedData.innings) {
+      const battingTeam = inferBattingTeam(String(inningsData.batting_team || ''))
+
       const { data: innings, error: inningsError } = await supabase
         .from('innings')
         .insert({
           match_id: match.id,
           innings_number: inningsData.innings_number,
-          batting_team: inningsData.batting_team,
+          batting_team: battingTeam,
           total_runs: inningsData.total_runs,
           wickets: inningsData.wickets,
           overs: inningsData.overs,
@@ -165,12 +227,10 @@ export async function POST(request: NextRequest) {
 
       // Create batting cards
       for (const battingCard of inningsData.batting_cards) {
-        // Only create cards for home team (your club's players)
-        if (inningsData.batting_team !== 'home') {
-          continue
-        }
-
-        const playerId = await getOrCreatePlayer(battingCard.player_name)
+        const isHomeBatting = battingTeam === 'home'
+        const playerId = await getOrCreatePlayer(battingCard.player_name, {
+          addToTeam: isHomeBatting,
+        })
 
         if (!playerId) {
           console.warn(`Could not create player: ${battingCard.player_name}`)
@@ -195,13 +255,11 @@ export async function POST(request: NextRequest) {
 
       // Create bowling cards
       for (const bowlingCard of inningsData.bowling_cards) {
-        // Only create cards for home team (your club's players)
         // Bowlers are from the opposite team that's batting
-        if (inningsData.batting_team === 'home') {
-          continue
-        }
-
-        const playerId = await getOrCreatePlayer(bowlingCard.player_name)
+        const isHomeBowling = battingTeam === 'away'
+        const playerId = await getOrCreatePlayer(bowlingCard.player_name, {
+          addToTeam: isHomeBowling,
+        })
 
         if (!playerId) {
           console.warn(`Could not create player: ${bowlingCard.player_name}`)
@@ -287,7 +345,7 @@ export async function POST(request: NextRequest) {
         player_id: playerId,
         catches: 0,
         stumpings: 0,
-        runouts: 0,
+        run_outs: 0,
         drops: 0,
         misfields: 0,
         derived: true, // Mark as auto-generated
@@ -295,6 +353,21 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✓ Created zero-rows for ${allPlayerIds.size} team players`)
+
+    // Recalculate season stats for leaderboards
+    try {
+      const origin = request.headers.get('origin')
+      if (origin) {
+        await fetch(`${origin}/api/stats/calculate`, {
+          method: 'POST',
+          headers: {
+            cookie: request.headers.get('cookie') || '',
+          },
+        })
+      }
+    } catch (calcError) {
+      console.warn('Stats recalculation failed after import:', calcError)
+    }
 
     return NextResponse.json({
       success: true,

@@ -3,9 +3,10 @@ import { createClient } from '../../../../lib/supabase/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const supabase = await createClient()
 
     // Get authenticated user
@@ -30,7 +31,7 @@ export async function GET(
     const { data: player, error: playerError } = await supabase
       .from('players')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('club_id', userRole.club_id)
       .single()
 
@@ -57,7 +58,7 @@ export async function GET(
       const { data: stats } = await supabase
         .from('player_season_stats')
         .select('*')
-        .eq('player_id', params.id)
+        .eq('player_id', id)
         .eq('season_id', activeSeason.id)
         .single()
 
@@ -68,7 +69,7 @@ export async function GET(
     const { data: careerStats } = await supabase
       .from('player_season_stats')
       .select('*')
-      .eq('player_id', params.id)
+      .eq('player_id', id)
 
     // Calculate career totals
     const careerTotals = careerStats?.reduce((acc, season) => ({
@@ -149,7 +150,7 @@ export async function GET(
           result
         )
       `)
-      .eq('player_id', params.id)
+      .eq('player_id', id)
       .order('created_at', { ascending: false })
       .limit(10)
 
