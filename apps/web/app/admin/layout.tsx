@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useUserRole } from '../../lib/hooks/useUserRole'
+import { getRoleDisplayName, getRoleBadgeColor } from '../../lib/permissions'
 
 export default function AdminLayout({
   children,
@@ -9,16 +11,24 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { role, permissions } = useUserRole()
 
-  const navigation = [
-    { name: 'Dashboard', href: '/admin' },
-    { name: 'Matches', href: '/admin/matches' },
-    { name: 'Players', href: '/admin/players' },
-    { name: 'Leaderboards', href: '/admin/leaderboards' },
-    { name: 'Teams', href: '/admin/teams' },
-    { name: 'Seasons', href: '/admin/seasons' },
-    { name: 'Scoring', href: '/admin/scoring' },
+  // All navigation items with their required permissions
+  const allNavigation = [
+    { name: 'Dashboard', href: '/admin', requiredPermission: null },
+    { name: 'Matches', href: '/admin/matches', requiredPermission: null },
+    { name: 'Players', href: '/admin/players', requiredPermission: null },
+    { name: 'Leaderboards', href: '/admin/leaderboards', requiredPermission: null },
+    { name: 'Teams', href: '/admin/teams', requiredPermission: (p: any) => p.canEditTeam },
+    { name: 'Seasons', href: '/admin/seasons', requiredPermission: (p: any) => p.canEditSeason },
+    { name: 'Scoring', href: '/admin/scoring', requiredPermission: (p: any) => p.canEditScoringConfig },
   ]
+
+  // Filter navigation based on permissions
+  const navigation = allNavigation.filter(item => {
+    if (!item.requiredPermission) return true
+    return permissions ? item.requiredPermission(permissions) : false
+  })
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
@@ -79,6 +89,23 @@ export default function AdminLayout({
 
           {/* User Menu */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Role Badge */}
+            {role && (
+              <div
+                style={{
+                  padding: '6px 12px',
+                  background: getRoleBadgeColor(role),
+                  color: 'white',
+                  borderRadius: '999px',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px'
+                }}
+              >
+                {getRoleDisplayName(role)}
+              </div>
+            )}
             <button
               onClick={() => {
                 // Sign out logic

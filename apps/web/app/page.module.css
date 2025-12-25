@@ -71,22 +71,6 @@
   margin-top: 12px;
 }
 
-.adminLink {
-  margin-top: 16px;
-}
-
-.adminLink a {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.adminLink a:hover {
-  color: #3b82f6;
-}
-
 .primary,
 .secondary {
   padding: 12px 26px;
