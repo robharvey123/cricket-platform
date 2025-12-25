@@ -1,0 +1,129 @@
+.page {
+  composes: page from '../../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.14), transparent 55%),
+    radial-gradient(circle at 90% 10%, rgba(94, 234, 212, 0.14), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #eef2ff 60%, #ecfeff 100%);
+}
+
+.shell {
+  composes: shell from '../../../ui/theme.module.css';
+}
+
+.backRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.backLink {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.header {
+  composes: header from '../../../ui/theme.module.css';
+}
+
+.kicker {
+  composes: kicker from '../../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../../ui/theme.module.css';
+}
+
+.alert {
+  composes: alert from '../../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../../ui/theme.module.css';
+}
+
+.cardTitle {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #1e293b;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.input {
+  composes: input from '../../../ui/theme.module.css';
+}
+
+.helpBox {
+  padding: 16px;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border: 1px solid #93c5fd;
+  border-radius: 10px;
+}
+
+.helpBox p {
+  font-size: 14px;
+  color: #1e3a8a;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.primaryButton {
+  composes: primaryButton from '../../../ui/theme.module.css';
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../../ui/theme.module.css';
+}
+
+@media (max-width: 768px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .formActions button,
+  .formActions a {
+    width: 100%;
+  }
+}

@@ -183,9 +183,14 @@ export default function MatchesPage() {
             <h1 className={styles.title}>Matches</h1>
             <p className={styles.subtitle}>Review scorecards, results, and stats.</p>
           </div>
-          <Link href="/admin/matches/import-pdf" className={styles.primaryButton}>
-            Import from PDF
-          </Link>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <Link href="/admin/matches/new" className={styles.primaryButton}>
+              Create Match
+            </Link>
+            <Link href="/admin/matches/import-pdf" className={styles.secondaryButton}>
+              Import from PDF
+            </Link>
+          </div>
         </header>
 
         <section className={styles.filtersCard}>
