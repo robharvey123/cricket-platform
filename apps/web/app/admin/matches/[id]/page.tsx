@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import styles from './page.module.css'
 
 interface Player {
@@ -63,6 +63,7 @@ interface Match {
 
 export default function MatchDetailPage() {
   const params = useParams()
+  const router = useRouter()
   const matchId = params.id as string
   const [match, setMatch] = useState<Match | null>(null)
   const [loading, setLoading] = useState(true)

@@ -13,11 +13,16 @@ export default function Home() {
             Run fixtures, scorecards, and player performance in one calm, focused workspace.
           </p>
           <div className={styles.actions}>
-            <Link className={styles.primary} href="/auth/signin">
-              Sign In
+            <Link className={styles.primary} href="/leaderboards">
+              View Leaderboards
             </Link>
-            <Link className={styles.secondary} href="/admin">
-              Open Admin
+            <Link className={styles.secondary} href="/matches">
+              Browse Matches
+            </Link>
+          </div>
+          <div className={styles.adminLink}>
+            <Link href="/auth/signin">
+              Sign in to Admin →
             </Link>
           </div>
         </div>
