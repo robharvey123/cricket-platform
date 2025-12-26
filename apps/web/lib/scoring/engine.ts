@@ -11,6 +11,9 @@ import type {
   FieldingPointsDetail,
 } from './types'
 
+// Re-export types for external use
+export type { ScoringFormula, BattingStats, BowlingStats, FieldingStats, PointsBreakdown }
+
 /**
  * Calculate batting points from stats
  */

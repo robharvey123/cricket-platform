@@ -100,9 +100,15 @@ export default function ScoringConfigPage() {
       const newFormula = JSON.parse(JSON.stringify(prev))
       let current: any = newFormula
       for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]]
+        const key = path[i]
+        if (key !== undefined) {
+          current = current[key]
+        }
       }
-      current[path[path.length - 1]] = value
+      const lastKey = path[path.length - 1]
+      if (lastKey !== undefined) {
+        current[lastKey] = value
+      }
       return newFormula
     })
   }
@@ -240,7 +246,10 @@ export default function ScoringConfigPage() {
                         value={milestone.at}
                         onChange={(e) => {
                           const newMilestones = [...(formula.batting.milestones || [])]
-                          newMilestones[idx].at = parseInt(e.target.value)
+                          const item = newMilestones[idx]
+                          if (item) {
+                            item.at = parseInt(e.target.value)
+                          }
                           updateFormula(['batting', 'milestones'], newMilestones)
                         }}
                         placeholder="Runs"
@@ -251,7 +260,10 @@ export default function ScoringConfigPage() {
                         value={milestone.bonus}
                         onChange={(e) => {
                           const newMilestones = [...(formula.batting.milestones || [])]
-                          newMilestones[idx].bonus = parseInt(e.target.value)
+                          const item = newMilestones[idx]
+                          if (item) {
+                            item.bonus = parseInt(e.target.value)
+                          }
                           updateFormula(['batting', 'milestones'], newMilestones)
                         }}
                         placeholder="Bonus"

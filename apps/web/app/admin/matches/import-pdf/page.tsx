@@ -147,11 +147,17 @@ export default function ImportPDFPage() {
     setEditedData((prev: any) => {
       const newData = JSON.parse(JSON.stringify(prev))
       const keys = path.split('.')
-      let current = newData
+      let current: any = newData
       for (let i = 0; i < keys.length - 1; i++) {
-        current = current[keys[i]]
+        const key = keys[i]
+        if (key !== undefined) {
+          current = current[key]
+        }
       }
-      current[keys[keys.length - 1]] = value
+      const lastKey = keys[keys.length - 1]
+      if (lastKey !== undefined) {
+        current[lastKey] = value
+      }
       return newData
     })
   }

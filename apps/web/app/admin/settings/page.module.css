@@ -1,0 +1,348 @@
+.page {
+  composes: page from '../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 20% 20%, rgba(14, 165, 233, 0.15), transparent 55%),
+    radial-gradient(circle at 90% 15%, rgba(139, 92, 246, 0.18), transparent 55%),
+    linear-gradient(135deg, #f8fafc 0%, #ecfeff 60%, #fef3c7 100%);
+}
+
+.shell {
+  composes: shell from '../../ui/theme.module.css';
+  gap: 28px;
+}
+
+.header {
+  composes: header from '../../ui/theme.module.css';
+}
+
+.kicker {
+  composes: kicker from '../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../ui/theme.module.css';
+}
+
+.clubInfoCard {
+  composes: card from '../../ui/theme.module.css';
+  border-left: 4px solid #0ea5e9;
+  animation: fadeUp 0.6s ease both;
+}
+
+.clubInfoHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.clubInfo h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 12px;
+}
+
+.clubDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.clubDetails p {
+  margin: 0;
+}
+
+.clubDetails strong {
+  color: #475569;
+  font-weight: 600;
+}
+
+.clubDetails code {
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.clubDetails a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.clubDetails a:hover {
+  text-decoration: underline;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badgeBlue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.actionButtons {
+  display: flex;
+  gap: 12px;
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../ui/theme.module.css';
+}
+
+.primaryButton {
+  composes: primaryButton from '../../ui/theme.module.css';
+}
+
+.section {
+  composes: card from '../../ui/theme.module.css';
+  animation: fadeUp 0.7s ease both;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.sectionIcon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.sectionDescription {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+.settingsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.settingCard {
+  display: block;
+  padding: 20px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  position: relative;
+}
+
+.settingCard:hover {
+  border-color: #7c3aed;
+  background: #faf5ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.15);
+}
+
+.settingCardDisabled {
+  display: block;
+  padding: 20px;
+  border: 2px solid #f1f5f9;
+  border-radius: 12px;
+  background: #f9fafb;
+  cursor: not-allowed;
+  opacity: 0.6;
+  text-decoration: none;
+}
+
+.settingCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.settingTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.settingCard:hover .settingTitle {
+  color: #7c3aed;
+}
+
+.settingDescription {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  line-height: 1.5;
+}
+
+.settingBadge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badgeGreen {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badgeOrange {
+  background: #fed7aa;
+  color: #9a3412;
+}
+
+.badgeGray {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.settingArrow {
+  font-size: 14px;
+  font-weight: 600;
+  color: #7c3aed;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.settingCard:hover .settingArrow {
+  opacity: 1;
+}
+
+.lockIcon {
+  font-size: 12px;
+  color: #f59e0b;
+  margin-top: 8px;
+  display: block;
+}
+
+.helpSection {
+  composes: card from '../../ui/theme.module.css';
+  background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 100%);
+  border: 1px solid #dbeafe;
+  animation: fadeUp 0.9s ease both;
+}
+
+.helpSection h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.helpSection > p {
+  color: #475569;
+  margin: 0 0 20px 0;
+  font-size: 15px;
+}
+
+.helpGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.helpCard {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.helpCard h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.helpCard p {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 12px 0;
+}
+
+.helpCard a {
+  color: #3b82f6;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.helpCard a:hover {
+  text-decoration: underline;
+}
+
+.warningText {
+  font-size: 14px;
+  color: #f59e0b;
+  margin-top: 8px;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .clubInfoHeader {
+    flex-direction: column;
+  }
+
+  .actionButtons {
+    width: 100%;
+  }
+
+  .settingsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .helpGrid {
+    grid-template-columns: 1fr;
+  }
+}

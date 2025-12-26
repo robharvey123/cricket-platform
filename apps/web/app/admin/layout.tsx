@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useUserRole } from '../../lib/hooks/useUserRole'
 import { getRoleDisplayName, getRoleBadgeColor } from '../../lib/permissions'
+import styles from './layout.module.css'
 
 export default function AdminLayout({
   children,
@@ -18,10 +19,9 @@ export default function AdminLayout({
     { name: 'Dashboard', href: '/admin', requiredPermission: null },
     { name: 'Matches', href: '/admin/matches', requiredPermission: null },
     { name: 'Players', href: '/admin/players', requiredPermission: null },
-    { name: 'Leaderboards', href: '/admin/leaderboards', requiredPermission: null },
     { name: 'Teams', href: '/admin/teams', requiredPermission: (p: any) => p.canEditTeam },
-    { name: 'Seasons', href: '/admin/seasons', requiredPermission: (p: any) => p.canEditSeason },
-    { name: 'Scoring', href: '/admin/scoring', requiredPermission: (p: any) => p.canEditScoringConfig },
+    { name: 'Leaderboards', href: '/admin/leaderboards', requiredPermission: null },
+    { name: 'Settings', href: '/admin/settings', requiredPermission: null },
   ]
 
   // Filter navigation based on permissions
@@ -31,55 +31,21 @@ export default function AdminLayout({
   })
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f9fafb' }}>
-      {/* Top Navigation Bar */}
-      <nav style={{
-        background: 'white',
-        borderBottom: '1px solid #e5e7eb',
-        position: 'sticky',
-        top: 0,
-        zIndex: 50
-      }}>
-        <div style={{
-          maxWidth: '1400px',
-          margin: '0 auto',
-          padding: '0 20px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          height: '64px'
-        }}>
-          {/* Logo/Brand */}
-          <Link
-            href="/admin"
-            style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
-              color: '#1f2937',
-              textDecoration: 'none'
-            }}
-          >
+    <div className={styles.layout}>
+      <nav className={styles.nav}>
+        <div className={styles.navInner}>
+          <Link href="/admin" className={styles.brand}>
             Cricket Platform
           </Link>
 
-          {/* Navigation Links */}
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div className={styles.navLinks}>
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  style={{
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    background: isActive ? '#f3f4f6' : 'transparent',
-                    color: isActive ? '#7c3aed' : '#6b7280',
-                    transition: 'all 0.2s'
-                  }}
+                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
                 >
                   {item.name}
                 </Link>
@@ -87,40 +53,20 @@ export default function AdminLayout({
             })}
           </div>
 
-          {/* User Menu */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Role Badge */}
+          <div className={styles.actions}>
             {role && (
               <div
-                style={{
-                  padding: '6px 12px',
-                  background: getRoleBadgeColor(role),
-                  color: 'white',
-                  borderRadius: '999px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px'
-                }}
+                className={styles.roleBadge}
+                style={{ background: getRoleBadgeColor(role) }}
               >
                 {getRoleDisplayName(role)}
               </div>
             )}
             <button
               onClick={() => {
-                // Sign out logic
                 window.location.href = '/auth/signin'
               }}
-              style={{
-                padding: '8px 16px',
-                background: 'transparent',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontSize: '14px',
-                fontWeight: '500',
-                color: '#6b7280',
-                cursor: 'pointer'
-              }}
+              className={styles.signOut}
             >
               Sign Out
             </button>
@@ -128,10 +74,7 @@ export default function AdminLayout({
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main>
-        {children}
-      </main>
+      <main>{children}</main>
     </div>
   )
 }

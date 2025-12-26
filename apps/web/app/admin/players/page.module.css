@@ -1,20 +1,18 @@
 .page {
-  min-height: 100vh;
-  background: #f9fafb;
+  composes: page from '../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 12% 18%, rgba(59, 130, 246, 0.08), transparent 55%),
+    radial-gradient(circle at 86% 12%, rgba(14, 116, 144, 0.1), transparent 55%),
+    #f8fafc;
 }
 
 .shell {
+  composes: shell from '../../ui/theme.module.css';
   max-width: 1400px;
-  margin: 0 auto;
-  padding: 40px 20px;
 }
 
 .loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 400px;
-  color: #6b7280;
+  composes: loading from '../../ui/theme.module.css';
 }
 
 .header {
@@ -22,45 +20,31 @@
 }
 
 .kicker {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #7c3aed;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
+  composes: kicker from '../../ui/theme.module.css';
 }
 
 .title {
-  font-size: 36px;
-  font-weight: bold;
-  margin: 0 0 8px 0;
-  color: #1f2937;
+  composes: title from '../../ui/theme.module.css';
 }
 
 .subtitle {
-  font-size: 16px;
-  color: #6b7280;
-  margin: 0;
+  composes: subtitle from '../../ui/theme.module.css';
 }
 
 .alert {
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 24px;
+  composes: alert from '../../ui/theme.module.css';
 }
 
 .alertError {
-  background: #fee2e2;
-  border: 1px solid #ef4444;
-  color: #dc2626;
-  font-size: 14px;
+  composes: alertError from '../../ui/theme.module.css';
 }
 
 .filters {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .searchInput {
@@ -86,6 +70,23 @@
   background: white;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.bulkDeleteButton {
+  margin-left: auto;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid #ef4444;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.bulkDeleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .filterSelect:focus {
@@ -165,8 +166,55 @@
   font-size: 15px;
 }
 
+.checkboxCell {
+  width: 36px;
+  text-align: center;
+}
+
+.playerIdTag {
+  margin-left: 8px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
 .row {
   transition: all 0.2s;
+}
+
+.rowLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rowLink:hover {
+  color: #1d4ed8;
+}
+
+.actionsCell {
+  text-align: right;
+}
+
+.dangerButton {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.dangerButton:hover {
+  background: #fecaca;
 }
 
 .badge {

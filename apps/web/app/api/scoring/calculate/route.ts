@@ -166,7 +166,7 @@ export async function POST(request: Request) {
           const events = []
 
           // Batting events
-          if (battingStats.runs > 0) {
+          if (battingStats.runs > 0 && breakdown.details.batting) {
             events.push({
               match_id: match.id,
               player_id,
@@ -176,7 +176,7 @@ export async function POST(request: Request) {
               points: breakdown.details.batting.runs,
             })
           }
-          if (breakdown.details.batting.boundaries > 0) {
+          if (breakdown.details.batting && breakdown.details.batting.boundaries > 0) {
             events.push({
               match_id: match.id,
               player_id,
@@ -186,7 +186,7 @@ export async function POST(request: Request) {
               points: breakdown.details.batting.boundaries,
             })
           }
-          if (breakdown.details.batting.milestones > 0) {
+          if (breakdown.details.batting && breakdown.details.batting.milestones > 0) {
             events.push({
               match_id: match.id,
               player_id,
@@ -196,7 +196,7 @@ export async function POST(request: Request) {
               points: breakdown.details.batting.milestones,
             })
           }
-          if (breakdown.details.batting.penalties !== 0) {
+          if (breakdown.details.batting && breakdown.details.batting.penalties !== 0) {
             events.push({
               match_id: match.id,
               player_id,
@@ -208,7 +208,7 @@ export async function POST(request: Request) {
           }
 
           // Bowling events
-          if (bowlingStats.wickets > 0) {
+          if (bowlingStats.wickets > 0 && breakdown.details.bowling) {
             events.push({
               match_id: match.id,
               player_id,
@@ -218,7 +218,7 @@ export async function POST(request: Request) {
               points: breakdown.details.bowling.wickets,
             })
           }
-          if (breakdown.details.bowling.maidens > 0) {
+          if (breakdown.details.bowling && breakdown.details.bowling.maidens > 0) {
             events.push({
               match_id: match.id,
               player_id,
@@ -228,7 +228,7 @@ export async function POST(request: Request) {
               points: breakdown.details.bowling.maidens,
             })
           }
-          if (breakdown.details.bowling.milestones > 0) {
+          if (breakdown.details.bowling && breakdown.details.bowling.milestones > 0) {
             events.push({
               match_id: match.id,
               player_id,
@@ -238,7 +238,7 @@ export async function POST(request: Request) {
               points: breakdown.details.bowling.milestones,
             })
           }
-          if (breakdown.details.bowling.economy !== 0) {
+          if (breakdown.details.bowling && breakdown.details.bowling.economy !== 0) {
             events.push({
               match_id: match.id,
               player_id,
@@ -250,7 +250,7 @@ export async function POST(request: Request) {
           }
 
           // Fielding events
-          if (fieldingStats.catches > 0) {
+          if (fieldingStats.catches > 0 && breakdown.details.fielding) {
             events.push({
               match_id: match.id,
               player_id,
@@ -260,7 +260,7 @@ export async function POST(request: Request) {
               points: breakdown.details.fielding.catches,
             })
           }
-          if (fieldingStats.stumpings > 0) {
+          if (fieldingStats.stumpings > 0 && breakdown.details.fielding) {
             events.push({
               match_id: match.id,
               player_id,
@@ -270,7 +270,7 @@ export async function POST(request: Request) {
               points: breakdown.details.fielding.stumpings,
             })
           }
-          if (fieldingStats.runouts > 0) {
+          if (fieldingStats.runouts > 0 && breakdown.details.fielding) {
             events.push({
               match_id: match.id,
               player_id,
@@ -280,7 +280,7 @@ export async function POST(request: Request) {
               points: breakdown.details.fielding.runouts,
             })
           }
-          if (breakdown.details.fielding.penalties !== 0) {
+          if (breakdown.details.fielding && breakdown.details.fielding.penalties !== 0) {
             events.push({
               match_id: match.id,
               player_id,

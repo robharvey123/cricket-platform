@@ -3,11 +3,11 @@ import { createClient } from '../../../../lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json()
+    const { email, password, fullName } = await request.json()
 
-    if (!email || !password) {
+    if (!email || !password || !fullName) {
       return NextResponse.json(
-        { error: 'Email and password are required' },
+        { error: 'Name, email, and password are required' },
         { status: 400 }
       )
     }
@@ -26,6 +26,10 @@ export async function POST(request: NextRequest) {
       password,
       options: {
         emailRedirectTo: `${request.nextUrl.origin}/auth/callback`,
+        data: {
+          full_name: fullName,
+          name: fullName
+        }
       },
     })
 

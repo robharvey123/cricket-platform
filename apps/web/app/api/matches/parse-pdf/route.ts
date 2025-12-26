@@ -64,6 +64,8 @@ IMPORTANT: The JSON must match this exact structure:
           "position": number (1-11),
           "dismissal_type": "caught" | "bowled" | "lbw" | "run out" | "stumped" | null if not out,
           "dismissal_text": "string describing full dismissal",
+          "bowler_name": "First Last" | null,
+          "fielder_name": "First Last" | null,
           "is_out": boolean,
           "runs": number,
           "balls_faced": number,
@@ -96,6 +98,12 @@ Guidelines:
   * Brookweald CC is always the "home" team
   * Only include batting_cards for the team that is batting, and bowling_cards for the team that is bowling
 - Parse dismissal types accurately (caught, bowled, lbw, run out, stumped, etc.)
+- Extract bowler_name and fielder_name when possible:
+  * "c Smith b Jones" => fielder_name="Smith", bowler_name="Jones"
+  * "st Smith b Jones" => fielder_name="Smith", bowler_name="Jones"
+  * "run out (Smith)" => fielder_name="Smith", bowler_name=null
+  * "lbw b Jones" => bowler_name="Jones"
+  * "bowled Jones" => bowler_name="Jones"
 - If a player is "not out", set dismissal_type to null and is_out to false
 - Extract all statistics accurately (runs, balls, 4s, 6s, overs, maidens, wickets, etc.)
 - Overs should be decimal (e.g., 41.5 means 41 overs and 5 balls)

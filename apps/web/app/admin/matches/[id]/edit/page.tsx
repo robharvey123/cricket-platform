@@ -21,6 +21,10 @@ interface BattingCard {
   sixes: number
   dismissal_type: string | null
   dismissal_text: string | null
+  dismissal_fielder_id?: string | null
+  dismissal_bowler_id?: string | null
+  dismissal_bowler_name?: string | null
+  dismissal_fielder_name?: string | null
   is_out: boolean
   players: Player
 }
@@ -34,6 +38,17 @@ interface BowlingCard {
   wickets: number
   wides: number
   no_balls: number
+  players: Player
+}
+
+interface FieldingCard {
+  id: string
+  player_id: string
+  catches: number
+  stumpings: number
+  runouts: number
+  drops: number
+  misfields: number
   players: Player
 }
 
@@ -58,6 +73,11 @@ interface Match {
   result: string
   published: boolean
   innings: Innings[]
+  fielding_cards: FieldingCard[]
+  team_players: Array<{
+    player_id: string
+    players: Player
+  }>
 }
 
 export default function EditMatchPage() {
@@ -68,6 +88,7 @@ export default function EditMatchPage() {
   const [match, setMatch] = useState<Match | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [fieldingLoading, setFieldingLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -126,7 +147,7 @@ export default function EditMatchPage() {
     setMatch(prev => {
       if (!prev) return null
       const newInnings = [...prev.innings]
-      newInnings[inningsIdx] = { ...newInnings[inningsIdx], [field]: value }
+      newInnings[inningsIdx] = { ...newInnings[inningsIdx], [field]: value } as Innings
       return { ...prev, innings: newInnings }
     })
   }
@@ -135,9 +156,11 @@ export default function EditMatchPage() {
     setMatch(prev => {
       if (!prev) return null
       const newInnings = [...prev.innings]
-      const newCards = [...newInnings[inningsIdx].batting_cards]
-      newCards[cardIdx] = { ...newCards[cardIdx], [field]: value }
-      newInnings[inningsIdx] = { ...newInnings[inningsIdx], batting_cards: newCards }
+      const innings = newInnings[inningsIdx]
+      if (!innings) return prev
+      const newCards = [...innings.batting_cards]
+      newCards[cardIdx] = { ...newCards[cardIdx], [field]: value } as BattingCard
+      newInnings[inningsIdx] = { ...innings, batting_cards: newCards } as Innings
       return { ...prev, innings: newInnings }
     })
   }
@@ -146,10 +169,66 @@ export default function EditMatchPage() {
     setMatch(prev => {
       if (!prev) return null
       const newInnings = [...prev.innings]
-      const newCards = [...newInnings[inningsIdx].bowling_cards]
-      newCards[cardIdx] = { ...newCards[cardIdx], [field]: value }
-      newInnings[inningsIdx] = { ...newInnings[inningsIdx], bowling_cards: newCards }
+      const innings = newInnings[inningsIdx]
+      if (!innings) return prev
+      const newCards = [...innings.bowling_cards]
+      newCards[cardIdx] = { ...newCards[cardIdx], [field]: value } as BowlingCard
+      newInnings[inningsIdx] = { ...innings, bowling_cards: newCards } as Innings
       return { ...prev, innings: newInnings }
+    })
+  }
+
+  const handleGenerateFieldingRows = async () => {
+    setFieldingLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/matches/${matchId}/fielding`, {
+        method: 'POST'
+      })
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate fielding rows')
+      }
+      await fetchMatch()
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setFieldingLoading(false)
+    }
+  }
+
+  const parseDismissalNames = (text: string | null | undefined) => {
+    if (!text) return { bowler: '', fielder: '' }
+    const lower = text.toLowerCase()
+    let bowler = ''
+    let fielder = ''
+    const bowlerMatch = lower.includes(' b ')
+      ? text.split(/ b /i).slice(1).join(' b ').trim()
+      : ''
+    if (bowlerMatch) {
+      bowler = bowlerMatch
+    }
+    const caughtMatch = text.match(/c(?:t)?\s+([^b]+?)\s+b\s+/i)
+    if (caughtMatch?.[1]) {
+      fielder = caughtMatch[1].trim()
+    }
+    const stumpedMatch = text.match(/st\s+([^b]+?)\s+b\s+/i)
+    if (stumpedMatch?.[1]) {
+      fielder = stumpedMatch[1].trim()
+    }
+    const runOutMatch = text.match(/run out\s*\(([^)]+)\)/i)
+    if (runOutMatch?.[1]) {
+      fielder = runOutMatch[1].trim()
+    }
+    return { bowler, fielder }
+  }
+
+  const updateFieldingCard = (cardIdx: number, field: string, value: any) => {
+    setMatch(prev => {
+      if (!prev) return null
+      const newCards = [...(prev.fielding_cards || [])]
+      newCards[cardIdx] = { ...newCards[cardIdx], [field]: value } as FieldingCard
+      return { ...prev, fielding_cards: newCards }
     })
   }
 
@@ -179,6 +258,10 @@ export default function EditMatchPage() {
   }
 
   if (!match) return null
+
+  const teamPlayers = (match.team_players || [])
+    .map((row) => row.players)
+    .filter(Boolean)
 
   return (
     <div className={styles.page}>
@@ -356,6 +439,9 @@ export default function EditMatchPage() {
                           <th>4s</th>
                           <th>6s</th>
                           <th>Out</th>
+                          <th>Type</th>
+                          <th>Bowler</th>
+                          <th>Fielder</th>
                           <th>Dismissal</th>
                         </tr>
                       </thead>
@@ -404,6 +490,69 @@ export default function EditMatchPage() {
                                 onChange={(e) => updateBattingCard(inningsIdx, cardIdx, 'is_out', e.target.checked)}
                                 className={styles.checkbox}
                               />
+                            </td>
+                            <td>
+                              <select
+                                value={card.dismissal_type || ''}
+                                onChange={(e) => updateBattingCard(inningsIdx, cardIdx, 'dismissal_type', e.target.value || null)}
+                                className={styles.tableInput}
+                                disabled={!card.is_out || innings.batting_team === 'home'}
+                              >
+                                <option value="">-</option>
+                                <option value="caught">Caught</option>
+                                <option value="bowled">Bowled</option>
+                                <option value="lbw">LBW</option>
+                                <option value="run out">Run Out</option>
+                                <option value="stumped">Stumped</option>
+                                <option value="hit wicket">Hit Wicket</option>
+                                <option value="retired">Retired</option>
+                              </select>
+                            </td>
+                            <td>
+                              {innings.batting_team === 'home' ? (
+                                <span className={styles.muted}>
+                                  {card.dismissal_bowler_name ||
+                                    parseDismissalNames(card.dismissal_text).bowler ||
+                                    '-'}
+                                </span>
+                              ) : (
+                                <select
+                                  value={card.dismissal_bowler_id || ''}
+                                  onChange={(e) => updateBattingCard(inningsIdx, cardIdx, 'dismissal_bowler_id', e.target.value || null)}
+                                  className={styles.tableInput}
+                                  disabled={!card.is_out}
+                                >
+                                  <option value="">-</option>
+                                  {teamPlayers.map((player) => (
+                                    <option key={player.id} value={player.id}>
+                                      {player.first_name} {player.last_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
+                            </td>
+                            <td>
+                              {innings.batting_team === 'home' ? (
+                                <span className={styles.muted}>
+                                  {card.dismissal_fielder_name ||
+                                    parseDismissalNames(card.dismissal_text).fielder ||
+                                    '-'}
+                                </span>
+                              ) : (
+                                <select
+                                  value={card.dismissal_fielder_id || ''}
+                                  onChange={(e) => updateBattingCard(inningsIdx, cardIdx, 'dismissal_fielder_id', e.target.value || null)}
+                                  className={styles.tableInput}
+                                  disabled={!card.is_out}
+                                >
+                                  <option value="">-</option>
+                                  {teamPlayers.map((player) => (
+                                    <option key={player.id} value={player.id}>
+                                      {player.first_name} {player.last_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              )}
                             </td>
                             <td>
                               <input
@@ -505,6 +654,105 @@ export default function EditMatchPage() {
               )}
             </section>
           ))}
+
+        {match.fielding_cards?.length > 0 && (
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2>Fielding</h2>
+              <div className={styles.fieldingHeader}>
+                <span className={styles.muted}>Record dropped catches before publishing.</span>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={handleGenerateFieldingRows}
+                  disabled={fieldingLoading}
+                >
+                  {fieldingLoading ? 'Generating...' : 'Generate fielding rows'}
+                </button>
+              </div>
+            </div>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>Catches</th>
+                    <th>Stumpings</th>
+                    <th>Run Outs</th>
+                    <th>Drops</th>
+                    <th>Misfields</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {match.fielding_cards.map((card, cardIdx) => (
+                    <tr key={card.id}>
+                      <td>
+                        {card.players.first_name} {card.players.last_name}
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={card.catches ?? 0}
+                          onChange={(e) => updateFieldingCard(cardIdx, 'catches', parseInt(e.target.value) || 0)}
+                          className={styles.tableInput}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={card.stumpings ?? 0}
+                          onChange={(e) => updateFieldingCard(cardIdx, 'stumpings', parseInt(e.target.value) || 0)}
+                          className={styles.tableInput}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={card.runouts ?? 0}
+                          onChange={(e) => updateFieldingCard(cardIdx, 'runouts', parseInt(e.target.value) || 0)}
+                          className={styles.tableInput}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={card.drops ?? 0}
+                          onChange={(e) => updateFieldingCard(cardIdx, 'drops', parseInt(e.target.value) || 0)}
+                          className={styles.tableInput}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={card.misfields ?? 0}
+                          onChange={(e) => updateFieldingCard(cardIdx, 'misfields', parseInt(e.target.value) || 0)}
+                          className={styles.tableInput}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {(!match.fielding_cards || match.fielding_cards.length === 0) && (
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <h2>Fielding</h2>
+              <span className={styles.muted}>No fielding rows yet.</span>
+            </div>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={handleGenerateFieldingRows}
+              disabled={fieldingLoading}
+            >
+              {fieldingLoading ? 'Generating...' : 'Generate fielding rows'}
+            </button>
+          </section>
+        )}
 
         <div className={styles.footerActions}>
           <button

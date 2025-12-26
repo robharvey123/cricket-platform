@@ -1,0 +1,315 @@
+.page {
+  composes: page from '../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.1), transparent 55%),
+    radial-gradient(circle at 90% 10%, rgba(244, 114, 182, 0.12), transparent 55%),
+    #f8fafc;
+}
+
+.shell {
+  composes: shell from '../../ui/theme.module.css';
+  max-width: 900px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.headerInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarFallback {
+  font-weight: 700;
+  font-size: 28px;
+  color: #475569;
+}
+
+.photoActions {
+  margin-top: 10px;
+}
+
+.photoUpload {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.photoUpload:hover {
+  border-color: #7c3aed;
+  color: #6d28d9;
+}
+
+.photoInput {
+  display: none;
+}
+
+.kicker {
+  composes: kicker from '../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.alert {
+  composes: alert from '../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../ui/theme.module.css';
+}
+
+.alertSuccess {
+  composes: alertSuccess from '../../ui/theme.module.css';
+}
+
+.primaryButton {
+  composes: primaryButton from '../../ui/theme.module.css';
+}
+
+.primaryButton:hover {
+  background: #6d28d9;
+  transform: translateY(-1px);
+}
+
+.primaryButton:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../ui/theme.module.css';
+}
+
+.secondaryButton:hover {
+  border-color: #9ca3af;
+  color: #374151;
+}
+
+.card {
+  composes: card from '../../ui/theme.module.css';
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.pill {
+  padding: 6px 12px;
+  background: #ede9fe;
+  color: #7c3aed;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: #f9fafb;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #6b7280;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.input, .select, .textarea {
+  composes: field from '../../ui/theme.module.css';
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+}
+
+.textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.select {
+  cursor: pointer;
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.emptyState h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.emptyState p {
+  font-size: 15px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.profileView {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profileField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profileField label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+}
+
+.profileValue {
+  font-size: 16px;
+  color: #1f2937;
+}
+
+.emptyValue {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.bioText {
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+}

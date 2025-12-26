@@ -1,10 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { calcBattingPoints, calcBowlingPoints, calcFieldingPoints } from '../../../../lib/scoring/engine'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const adminClient = serviceRoleKey
+      ? createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          serviceRoleKey,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        )
+      : null
 
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -210,13 +219,104 @@ export async function POST(request: NextRequest) {
         console.error('Matches fallback error (stats):', fallback.error)
       }
 
-      matches = fallback.data || []
+      matches = (fallback.data as any) || []
     }
 
     if (!matches || matches.length === 0) {
+      let clearedSeasonStats = 0
+      let clearedMatchPerf = 0
+
+      if (adminClient) {
+        const { data: seasonDeleted } = await adminClient
+          .from('player_season_stats')
+          .delete()
+          .eq('club_id', clubId)
+          .eq('season_id', season.id)
+          .select('id')
+        clearedSeasonStats = seasonDeleted?.length || 0
+
+        const { data: perfDeleted } = await adminClient
+          .from('player_match_performance')
+          .delete()
+          .eq('club_id', clubId)
+          .eq('season_id', season.id)
+          .select('id')
+        clearedMatchPerf = perfDeleted?.length || 0
+      } else {
+        const { data: seasonUpdated } = await supabase
+          .from('player_season_stats')
+          .update({
+            matches_batted: 0,
+            innings_batted: 0,
+            not_outs: 0,
+            runs_scored: 0,
+            balls_faced: 0,
+            fours: 0,
+            sixes: 0,
+            highest_score: 0,
+            fifties: 0,
+            hundreds: 0,
+            ducks: 0,
+            batting_average: null,
+            batting_strike_rate: null,
+            matches_bowled: 0,
+            innings_bowled: 0,
+            overs_bowled: 0,
+            maidens: 0,
+            runs_conceded: 0,
+            wickets: 0,
+            best_bowling_wickets: 0,
+            best_bowling_runs: 0,
+            three_fors: 0,
+            five_fors: 0,
+            bowling_average: null,
+            bowling_economy: null,
+            bowling_strike_rate: null,
+            catches: 0,
+            stumpings: 0,
+            run_outs: 0,
+            drops: 0,
+            total_points: 0,
+            batting_points: 0,
+            bowling_points: 0,
+            fielding_points: 0
+          })
+          .eq('club_id', clubId)
+          .eq('season_id', season.id)
+          .select('id')
+        clearedSeasonStats = seasonUpdated?.length || 0
+
+        const { data: perfUpdated } = await supabase
+          .from('player_match_performance')
+          .update({
+            runs: 0,
+            balls_faced: 0,
+            fours: 0,
+            sixes: 0,
+            wickets: 0,
+            overs_bowled: 0,
+            runs_conceded: 0,
+            maidens: 0,
+            catches: 0,
+            stumpings: 0,
+            run_outs: 0,
+            batting_points: 0,
+            bowling_points: 0,
+            fielding_points: 0,
+            total_points: 0,
+            points_breakdown: {}
+          })
+          .eq('club_id', clubId)
+          .eq('season_id', season.id)
+          .select('id')
+        clearedMatchPerf = perfUpdated?.length || 0
+      }
+
       return NextResponse.json({
         message: 'No matches found',
         processed: 0,
+        clearedSeasonStats,
+        clearedMatchPerf,
         debug: {
           clubId,
           seasonId: season.id
@@ -332,8 +432,7 @@ export async function POST(request: NextRequest) {
               balls: card.balls_faced || 0,
               fours: card.fours || 0,
               sixes: card.sixes || 0,
-              out: card.is_out,
-              duck: card.runs === 0 && card.is_out
+              dismissal: card.is_out ? (card.dismissal_type || 'out') : undefined
             })
 
             stats.batting_points += battingPoints.points
@@ -430,13 +529,11 @@ export async function POST(request: NextRequest) {
             }
 
             // Calculate bowling points
-            const balls = card.overs * 6
             const bowlingPoints = calcBowlingPoints(formula.bowling, {
               wickets: card.wickets || 0,
               overs: card.overs || 0,
               runs: card.runs_conceded || 0,
-              maidens: card.maidens || 0,
-              balls: balls
+              maidens: card.maidens || 0
             })
 
             stats.bowling_points += bowlingPoints.points

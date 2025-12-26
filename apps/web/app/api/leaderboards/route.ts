@@ -84,12 +84,22 @@ export async function GET(request: NextRequest) {
       .order('bowling_economy', { ascending: true })
       .limit(10)
 
+    const { data: fieldingLeaderboard } = await supabase
+      .from('player_season_stats')
+      .select('*')
+      .eq('season_id', activeSeason.id)
+      .eq('club_id', userRole.club_id)
+      .or('fielding_points.gt.0,catches.gt.0,stumpings.gt.0,run_outs.gt.0,drops.gt.0')
+      .order('fielding_points', { ascending: false })
+      .limit(20)
+
     const allRows = [
       ...(battingLeaderboard || []),
       ...(bowlingLeaderboard || []),
       ...(pointsLeaderboard || []),
       ...(averageLeaderboard || []),
-      ...(economyLeaderboard || [])
+      ...(economyLeaderboard || []),
+      ...(fieldingLeaderboard || [])
     ]
     const playerIds = Array.from(
       new Set(allRows.map((row: any) => row.player_id).filter(Boolean))
@@ -130,7 +140,8 @@ export async function GET(request: NextRequest) {
       bowling: attachNames(bowlingLeaderboard),
       points: attachNames(pointsLeaderboard),
       average: attachNames(averageLeaderboard),
-      economy: attachNames(economyLeaderboard)
+      economy: attachNames(economyLeaderboard),
+      fielding: attachNames(fieldingLeaderboard)
     })
 
   } catch (error: any) {

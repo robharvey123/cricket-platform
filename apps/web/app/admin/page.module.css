@@ -33,6 +33,79 @@
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.statsGrid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.statCard {
+  composes: card from '../ui/theme.module.css';
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  min-height: 160px;
+}
+
+.statLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.statValue {
+  font-size: 36px;
+  font-weight: 700;
+  margin: 6px 0;
+  color: #0f172a;
+}
+
+.statMeta {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.statTrend {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.trendLabel {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.statPill {
+  background: rgba(15, 23, 42, 0.06);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #1f2937;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.statPill strong {
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+
+.resultSplit {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #475569;
+}
+
 .card,
 .cardLink {
   composes: card from '../ui/theme.module.css';
@@ -155,6 +228,23 @@
   vector-effect: non-scaling-stroke;
 }
 
+.sparklineAlt {
+  width: 100%;
+  height: 120px;
+  background: linear-gradient(180deg, rgba(209, 250, 229, 0.6), rgba(209, 250, 229, 0));
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.sparklineLineAlt {
+  fill: none;
+  stroke: #0f766e;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
 .sparklineAxis {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -162,6 +252,108 @@
   font-size: 12px;
   color: #64748b;
   text-align: center;
+}
+
+.barList {
+  display: grid;
+  gap: 14px;
+}
+
+.barRow {
+  display: grid;
+  gap: 8px;
+}
+
+.barLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #334155;
+  gap: 12px;
+}
+
+.barTrack {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f97316, #facc15);
+}
+
+.resultsCard {
+  display: grid;
+  gap: 16px;
+}
+
+.stackedBar {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.stackWin {
+  background: #10b981;
+}
+
+.stackLoss {
+  background: #ef4444;
+}
+
+.stackTie {
+  background: #f59e0b;
+}
+
+.stackDraw {
+  background: #6b7280;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legendSwatchWin,
+.legendSwatchLoss,
+.legendSwatchTie,
+.legendSwatchDraw {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legendSwatchWin {
+  background: #10b981;
+}
+
+.legendSwatchLoss {
+  background: #ef4444;
+}
+
+.legendSwatchTie {
+  background: #f59e0b;
+}
+
+.legendSwatchDraw {
+  background: #6b7280;
 }
 
 .barChart {
@@ -187,6 +379,28 @@
   border-radius: 14px 14px 6px 6px;
   background: linear-gradient(180deg, #10b981, #0f766e);
   box-shadow: 0 12px 24px rgba(16, 185, 129, 0.25);
+}
+
+.loadingState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 4px solid rgba(148, 163, 184, 0.3);
+  border-top-color: #1d4ed8;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes fadeUp {

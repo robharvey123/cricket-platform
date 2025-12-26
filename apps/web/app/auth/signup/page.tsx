@@ -7,6 +7,7 @@ import styles from '../auth.module.css'
 
 export default function SignUpPage() {
   const [email, setEmail] = useState('')
+  const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,7 +29,7 @@ export default function SignUpPage() {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, fullName }),
       })
 
       const data = await response.json()
@@ -56,6 +57,18 @@ export default function SignUpPage() {
         {error && <div className={styles.alert}>{error}</div>}
 
         <form onSubmit={handleSignUp} className={styles.form}>
+          <label className={styles.fieldLabel}>
+            Full name
+            <input
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+              className={styles.field}
+              placeholder="Rob Harvey"
+            />
+          </label>
+
           <label className={styles.fieldLabel}>
             Email
             <input

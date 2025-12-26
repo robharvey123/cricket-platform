@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '../../../../lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,16 @@ export async function POST(request: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const adminClient = serviceRoleKey
+      ? createAdminClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          serviceRoleKey,
+          { auth: { autoRefreshToken: false, persistSession: false } }
+        )
+      : null
+    const writeClient = adminClient ?? supabase
 
     // Get user's club
     const { data: userRole } = await supabase
@@ -92,15 +103,15 @@ export async function POST(request: NextRequest) {
       const commaSplit = trimmed.split(',').map(part => part.trim()).filter(Boolean)
 
       if (commaSplit.length >= 2) {
-        lastName = commaSplit[0]
+        lastName = commaSplit[0] || ''
         firstName = commaSplit.slice(1).join(' ')
       } else {
         const nameParts = trimmed.split(/\s+/).filter(Boolean)
         if (nameParts.length === 1) {
-          firstName = nameParts[0]
+          firstName = nameParts[0] || ''
           lastName = ''
         } else {
-          firstName = nameParts[0]
+          firstName = nameParts[0] || ''
           lastName = nameParts.slice(1).join(' ')
         }
       }
@@ -111,10 +122,10 @@ export async function POST(request: NextRequest) {
       }
 
       // Create new player
-      const { data: newPlayer, error: playerError } = await supabase
+      const { data: newPlayer, error: playerError } = await writeClient
         .from('players')
         .insert({
-          club_id: userRole.club_id,
+          club_id: userRole!.club_id,
           first_name: firstName,
           last_name: lastName,
         })
@@ -128,10 +139,10 @@ export async function POST(request: NextRequest) {
 
       // Add to team roster only for club players
       if (options.addToTeam) {
-        await supabase
+        await writeClient
           .from('team_players')
           .insert({
-            team_id: team.id,
+            team_id: team!.id,
             player_id: newPlayer.id,
           })
       }
@@ -144,7 +155,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create match
-    const { data: match, error: matchError } = await supabase
+    const { data: match, error: matchError } = await writeClient
       .from('matches')
       .insert({
         club_id: userRole.club_id,
@@ -200,17 +211,40 @@ export async function POST(request: NextRequest) {
       if (opponentName && normalized.includes(opponentName)) {
         return 'away'
       }
-      return normalized
+      return 'home'
     }
 
-    for (const inningsData of parsedData.innings) {
-      const battingTeam = inferBattingTeam(String(inningsData.batting_team || ''))
+    const normalizeDismissal = (value: string | null | undefined) =>
+      (value || '').toLowerCase().replace(/[_-]+/g, ' ').trim()
 
-      const { data: innings, error: inningsError } = await supabase
+    const isFieldingDismissal = (dismissalType: string) => {
+      const normalized = normalizeDismissal(dismissalType)
+      return ['caught', 'run out', 'runout', 'stumped'].includes(normalized)
+    }
+
+    const fieldingCounts = new Map<string, {
+      catches: number
+      stumpings: number
+      runouts: number
+    }>()
+
+    let battingInputCount = 0
+    let battingInsertedCount = 0
+    let battingSkippedCount = 0
+    let battingFailedCount = 0
+    let bowlingInputCount = 0
+    let bowlingInsertedCount = 0
+    let bowlingFailedCount = 0
+
+    for (const [index, inningsData] of parsedData.innings.entries()) {
+      const battingTeam = inferBattingTeam(String(inningsData.batting_team || ''))
+      const inningsNumber = Number(inningsData.innings_number ?? index + 1)
+
+      const { data: innings, error: inningsError } = await writeClient
         .from('innings')
         .insert({
           match_id: match.id,
-          innings_number: inningsData.innings_number,
+          innings_number: Number.isFinite(inningsNumber) ? inningsNumber : index + 1,
           batting_team: battingTeam,
           total_runs: inningsData.total_runs,
           wickets: inningsData.wickets,
@@ -222,10 +256,12 @@ export async function POST(request: NextRequest) {
 
       if (inningsError || !innings) {
         console.error('Innings creation error:', inningsError)
-        continue
+        throw new Error(inningsError?.message || 'Failed to create innings')
       }
 
       // Create batting cards
+      const battingCards = inningsData.batting_cards || []
+      battingInputCount += battingCards.length
       for (const battingCard of inningsData.batting_cards) {
         const isHomeBatting = battingTeam === 'home'
         const playerId = await getOrCreatePlayer(battingCard.player_name, {
@@ -234,16 +270,48 @@ export async function POST(request: NextRequest) {
 
         if (!playerId) {
           console.warn(`Could not create player: ${battingCard.player_name}`)
+          battingSkippedCount += 1
           continue
         }
 
-        await supabase.from('batting_cards').insert({
+        let dismissalFielderId: string | null = null
+        let dismissalBowlerId: string | null = null
+
+        if (!isHomeBatting) {
+          if (battingCard.fielder_name) {
+            dismissalFielderId = await getOrCreatePlayer(battingCard.fielder_name, {
+              addToTeam: true,
+            })
+          }
+          if (battingCard.bowler_name) {
+            dismissalBowlerId = await getOrCreatePlayer(battingCard.bowler_name, {
+              addToTeam: true,
+            })
+          }
+        }
+
+        if (dismissalFielderId && isFieldingDismissal(battingCard.dismissal_type)) {
+          const existing = fieldingCounts.get(dismissalFielderId) || { catches: 0, stumpings: 0, runouts: 0 }
+          const dismissalType = normalizeDismissal(battingCard.dismissal_type)
+          if (dismissalType === 'caught') {
+            existing.catches += 1
+          } else if (dismissalType === 'stumped') {
+            existing.stumpings += 1
+          } else if (dismissalType === 'run out' || dismissalType === 'runout') {
+            existing.runouts += 1
+          }
+          fieldingCounts.set(dismissalFielderId, existing)
+        }
+
+        const battingInsert = await writeClient.from('batting_cards').insert({
           innings_id: innings.id,
           match_id: match.id,
           player_id: playerId,
           position: battingCard.position,
           dismissal_type: battingCard.dismissal_type,
           dismissal_text: battingCard.dismissal_text,
+          dismissal_fielder_id: dismissalFielderId,
+          dismissal_bowler_id: dismissalBowlerId,
           is_out: battingCard.is_out,
           runs: battingCard.runs,
           balls_faced: battingCard.balls_faced,
@@ -251,9 +319,36 @@ export async function POST(request: NextRequest) {
           sixes: battingCard.sixes,
           derived: false,
         })
+        if (battingInsert.error) {
+          console.warn('Batting card insert failed, retrying without dismissal links:', battingInsert.error.message)
+          const fallbackInsert = await writeClient.from('batting_cards').insert({
+            innings_id: innings.id,
+            match_id: match.id,
+            player_id: playerId,
+            position: battingCard.position,
+            dismissal_type: battingCard.dismissal_type,
+            dismissal_text: battingCard.dismissal_text,
+            is_out: battingCard.is_out,
+            runs: battingCard.runs,
+            balls_faced: battingCard.balls_faced,
+            fours: battingCard.fours,
+            sixes: battingCard.sixes,
+            derived: false,
+          })
+          if (fallbackInsert.error) {
+            console.error('Batting card fallback insert failed:', fallbackInsert.error.message)
+            battingFailedCount += 1
+          } else {
+            battingInsertedCount += 1
+          }
+        } else {
+          battingInsertedCount += 1
+        }
       }
 
       // Create bowling cards
+      const bowlingCards = inningsData.bowling_cards || []
+      bowlingInputCount += bowlingCards.length
       for (const bowlingCard of inningsData.bowling_cards) {
         // Bowlers are from the opposite team that's batting
         const isHomeBowling = battingTeam === 'away'
@@ -263,10 +358,11 @@ export async function POST(request: NextRequest) {
 
         if (!playerId) {
           console.warn(`Could not create player: ${bowlingCard.player_name}`)
+          bowlingFailedCount += 1
           continue
         }
 
-        await supabase.from('bowling_cards').insert({
+        const bowlingInsert = await writeClient.from('bowling_cards').insert({
           innings_id: innings.id,
           match_id: match.id,
           player_id: playerId,
@@ -278,6 +374,12 @@ export async function POST(request: NextRequest) {
           no_balls: bowlingCard.no_balls,
           derived: false,
         })
+        if (bowlingInsert.error) {
+          console.error('Bowling card insert failed:', bowlingInsert.error.message)
+          bowlingFailedCount += 1
+        } else {
+          bowlingInsertedCount += 1
+        }
       }
     }
 
@@ -288,7 +390,7 @@ export async function POST(request: NextRequest) {
       .select('player_id')
       .eq('team_id', team.id)
 
-    const allPlayerIds = new Set(teamPlayers?.map(tp => tp.player_id) || [])
+    const teamPlayerIds = new Set(teamPlayers?.map(tp => tp.player_id) || [])
 
     // Get players who already have batting cards
     const { data: existingBatting } = await supabase
@@ -306,10 +408,22 @@ export async function POST(request: NextRequest) {
 
     const bowledPlayerIds = new Set(existingBowling?.map(b => b.player_id) || [])
 
-    // Create zero-rows for players who didn't bat
-    for (const playerId of allPlayerIds) {
+    const matchPlayerIds = new Set<string>()
+    for (const playerId of battedPlayerIds) {
+      if (teamPlayerIds.has(playerId)) {
+        matchPlayerIds.add(playerId)
+      }
+    }
+    for (const playerId of bowledPlayerIds) {
+      if (teamPlayerIds.has(playerId)) {
+        matchPlayerIds.add(playerId)
+      }
+    }
+
+    // Create zero-rows for players who didn't bat (match XI only)
+    for (const playerId of matchPlayerIds) {
       if (!battedPlayerIds.has(playerId)) {
-        await supabase.from('batting_cards').insert({
+        await writeClient.from('batting_cards').insert({
           match_id: match.id,
           player_id: playerId,
           runs: 0,
@@ -321,10 +435,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create zero-rows for players who didn't bowl
-    for (const playerId of allPlayerIds) {
+    // Create zero-rows for players who didn't bowl (match XI only)
+    for (const playerId of matchPlayerIds) {
       if (!bowledPlayerIds.has(playerId)) {
-        await supabase.from('bowling_cards').insert({
+        await writeClient.from('bowling_cards').insert({
           match_id: match.id,
           player_id: playerId,
           overs: 0,
@@ -338,21 +452,22 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create zero-row fielding cards for all players
-    for (const playerId of allPlayerIds) {
-      await supabase.from('fielding_cards').insert({
+    // Create zero-row fielding cards for match XI only
+    for (const playerId of matchPlayerIds) {
+      const counts = fieldingCounts.get(playerId) || { catches: 0, stumpings: 0, runouts: 0 }
+      await writeClient.from('fielding_cards').insert({
         match_id: match.id,
         player_id: playerId,
-        catches: 0,
-        stumpings: 0,
-        run_outs: 0,
+        catches: counts.catches,
+        stumpings: counts.stumpings,
+        run_outs: counts.runouts,
         drops: 0,
         misfields: 0,
         derived: true, // Mark as auto-generated
       })
     }
 
-    console.log(`✓ Created zero-rows for ${allPlayerIds.size} team players`)
+    console.log(`✓ Created zero-rows for ${matchPlayerIds.size} match players`)
 
     // Recalculate season stats for leaderboards
     try {
@@ -369,10 +484,37 @@ export async function POST(request: NextRequest) {
       console.warn('Stats recalculation failed after import:', calcError)
     }
 
+    const { data: debugInnings } = await writeClient
+      .from('innings')
+      .select('id, innings_number')
+      .eq('match_id', match.id)
+
+    const { data: debugBattingCards } = await writeClient
+      .from('batting_cards')
+      .select('id, innings_id')
+      .eq('match_id', match.id)
+
+    const battingByInnings: Record<string, number> = {}
+    ;(debugBattingCards || []).forEach((card: any) => {
+      const key = card.innings_id || 'null'
+      battingByInnings[key] = (battingByInnings[key] || 0) + 1
+    })
+
     return NextResponse.json({
       success: true,
       matchId: match.id,
       message: 'Match imported successfully from PDF!',
+      debug: {
+        battingInputCount,
+        battingInsertedCount,
+        battingSkippedCount,
+        battingFailedCount,
+        bowlingInputCount,
+        bowlingInsertedCount,
+        bowlingFailedCount,
+        inningsIds: (debugInnings || []).map((row: any) => row.id),
+        battingByInnings
+      }
     })
 
   } catch (error: any) {

@@ -1,12 +1,26 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import styles from './page.module.css'
 
 interface Team {
   id: string
   name: string
   created_at: string
+}
+
+interface Captain {
+  id: string
+  user_id: string
+  email: string
+  assigned_at: string
+}
+
+interface ClubUser {
+  user_id: string
+  email: string
+  role: string
 }
 
 export default function TeamsPage() {
@@ -18,9 +32,14 @@ export default function TeamsPage() {
   const [formData, setFormData] = useState({
     name: ''
   })
+  const [managingCaptains, setManagingCaptains] = useState<string | null>(null)
+  const [captains, setCaptains] = useState<Record<string, Captain[]>>({})
+  const [clubUsers, setClubUsers] = useState<ClubUser[]>([])
+  const [selectedUser, setSelectedUser] = useState<string>('')
 
   useEffect(() => {
     fetchTeams()
+    fetchClubUsers()
   }, [])
 
   const fetchTeams = async () => {
@@ -91,6 +110,87 @@ export default function TeamsPage() {
       }
 
       fetchTeams()
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
+
+  const fetchClubUsers = async () => {
+    try {
+      const response = await fetch('/api/users')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch users')
+      }
+
+      setClubUsers(data.users || [])
+    } catch (err: any) {
+      console.error('Failed to fetch users:', err)
+    }
+  }
+
+  const fetchTeamCaptains = async (teamId: string) => {
+    try {
+      const response = await fetch(`/api/teams/${teamId}/captains`)
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch captains')
+      }
+
+      setCaptains(prev => ({
+        ...prev,
+        [teamId]: data.captains || []
+      }))
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
+
+  const handleManageCaptains = async (teamId: string) => {
+    setManagingCaptains(teamId)
+    setSelectedUser('')
+    await fetchTeamCaptains(teamId)
+  }
+
+  const handleAssignCaptain = async (teamId: string) => {
+    if (!selectedUser) return
+
+    try {
+      const response = await fetch(`/api/teams/${teamId}/captains`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: selectedUser })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to assign captain')
+      }
+
+      setSelectedUser('')
+      await fetchTeamCaptains(teamId)
+    } catch (err: any) {
+      setError(err.message)
+    }
+  }
+
+  const handleRemoveCaptain = async (teamId: string, captainId: string) => {
+    if (!confirm('Remove this captain from the team?')) return
+
+    try {
+      const response = await fetch(`/api/teams/${teamId}/captains?captainId=${captainId}`, {
+        method: 'DELETE'
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to remove captain')
+      }
+
+      await fetchTeamCaptains(teamId)
     } catch (err: any) {
       setError(err.message)
     }
@@ -193,28 +293,97 @@ export default function TeamsPage() {
                   </thead>
                   <tbody>
                     {teams.map((team) => (
-                      <tr key={team.id}>
-                        <td>
-                          <strong>{team.name}</strong>
-                        </td>
-                        <td>{new Date(team.created_at).toLocaleDateString()}</td>
-                        <td>
-                          <div className={styles.actions}>
-                            <button
-                              onClick={() => handleEdit(team)}
-                              className={styles.linkButton}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDelete(team.id)}
-                              className={`${styles.linkButton} ${styles.dangerButton}`}
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                      <>
+                        <tr key={team.id}>
+                          <td>
+                            <strong>{team.name}</strong>
+                          </td>
+                          <td>{new Date(team.created_at).toLocaleDateString()}</td>
+                          <td>
+                            <div className={styles.actions}>
+                              <Link
+                                href={`/admin/teams/${team.id}`}
+                                className={styles.linkButton}
+                              >
+                                Analytics
+                              </Link>
+                              <button
+                                onClick={() => handleManageCaptains(team.id)}
+                                className={styles.linkButton}
+                              >
+                                Captains
+                              </button>
+                              <button
+                                onClick={() => handleEdit(team)}
+                                className={styles.linkButton}
+                              >
+                                Edit
+                              </button>
+                              <button
+                                onClick={() => handleDelete(team.id)}
+                                className={`${styles.linkButton} ${styles.dangerButton}`}
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                        {managingCaptains === team.id && (
+                          <tr>
+                            <td colSpan={3} className={styles.captainManagement}>
+                              <div className={styles.captainSection}>
+                                <h3>Team Captains</h3>
+
+                                {captains[team.id] && captains[team.id]!.length > 0 && (
+                                  <div className={styles.captainList}>
+                                    {captains[team.id]!.map((captain) => (
+                                      <div key={captain.id} className={styles.captainItem}>
+                                        <span>{captain.email}</span>
+                                        <button
+                                          onClick={() => handleRemoveCaptain(team.id, captain.id)}
+                                          className={styles.removeCaptainButton}
+                                        >
+                                          Remove
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                <div className={styles.assignCaptainForm}>
+                                  <select
+                                    value={selectedUser}
+                                    onChange={(e) => setSelectedUser(e.target.value)}
+                                    className={styles.select}
+                                  >
+                                    <option value="">Select a user to assign as captain</option>
+                                    {clubUsers
+                                      .filter(u => !captains[team.id]?.some(c => c.user_id === u.user_id))
+                                      .map((user) => (
+                                        <option key={user.user_id} value={user.user_id}>
+                                          {user.email} ({user.role})
+                                        </option>
+                                      ))}
+                                  </select>
+                                  <button
+                                    onClick={() => handleAssignCaptain(team.id)}
+                                    disabled={!selectedUser}
+                                    className={styles.primaryButton}
+                                  >
+                                    Assign Captain
+                                  </button>
+                                  <button
+                                    onClick={() => setManagingCaptains(null)}
+                                    className={styles.secondaryButton}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ))}
                   </tbody>
                 </table>

@@ -19,10 +19,13 @@ interface BattingCard {
   sixes: number
   dismissal_type: string | null
   dismissal_text: string | null
+  dismissal_bowler_name?: string | null
+  dismissal_fielder_name?: string | null
   is_out: boolean
   strike_rate: number | null
   derived: boolean
-  players: Player
+  players?: Player | null
+  player_id?: string | null
 }
 
 interface BowlingCard {
@@ -35,7 +38,8 @@ interface BowlingCard {
   no_balls: number
   economy: number | null
   derived: boolean
-  players: Player
+  players?: Player | null
+  player_id?: string | null
 }
 
 interface Innings {
@@ -302,7 +306,9 @@ export default function MatchDetailPage() {
                             <th>4s</th>
                             <th>6s</th>
                             <th>SR</th>
-                            <th>Dismissal</th>
+                            <th>Type</th>
+                            <th>Bowler</th>
+                            <th>Fielder</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -311,7 +317,11 @@ export default function MatchDetailPage() {
                             .map((card) => (
                               <tr key={card.id}>
                                 <td>
-                                  {card.players.first_name} {card.players.last_name}
+                                  {card.players
+                                    ? `${card.players.first_name} ${card.players.last_name}`
+                                    : card.player_id
+                                      ? `Player ${card.player_id.slice(0, 6)}`
+                                      : 'Unknown Player'}
                                 </td>
                                 <td>{card.runs}</td>
                                 <td>{card.balls_faced || '-'}</td>
@@ -319,7 +329,15 @@ export default function MatchDetailPage() {
                                 <td>{card.sixes}</td>
                                 <td>{card.strike_rate ? card.strike_rate.toFixed(1) : '-'}</td>
                                 <td className={styles.muted}>
-                                  {card.is_out ? card.dismissal_text : 'not out'}
+                                  {card.is_out
+                                    ? (card.dismissal_type || card.dismissal_text || 'out')
+                                    : 'not out'}
+                                </td>
+                                <td className={styles.muted}>
+                                  {card.dismissal_bowler_name || '-'}
+                                </td>
+                                <td className={styles.muted}>
+                                  {card.dismissal_fielder_name || '-'}
                                 </td>
                               </tr>
                             ))}
@@ -355,7 +373,11 @@ export default function MatchDetailPage() {
                             .map((card) => (
                               <tr key={card.id}>
                                 <td>
-                                  {card.players.first_name} {card.players.last_name}
+                                  {card.players
+                                    ? `${card.players.first_name} ${card.players.last_name}`
+                                    : card.player_id
+                                      ? `Player ${card.player_id.slice(0, 6)}`
+                                      : 'Unknown Player'}
                                 </td>
                                 <td>{card.overs}</td>
                                 <td>{card.maidens}</td>

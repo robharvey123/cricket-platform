@@ -1,0 +1,225 @@
+.page {
+  composes: page from '../../ui/theme.module.css';
+}
+
+.shell {
+  composes: shell from '../../ui/theme.module.css';
+}
+
+.header {
+  composes: header from '../../ui/theme.module.css';
+}
+
+.kicker {
+  composes: kicker from '../../ui/theme.module.css';
+}
+
+.title {
+  composes: title from '../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../ui/theme.module.css';
+}
+
+.primaryButton {
+  composes: primaryButton from '../../ui/theme.module.css';
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../ui/theme.module.css';
+}
+
+.ghostButton {
+  composes: ghostButton from '../../ui/theme.module.css';
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.card {
+  composes: card from '../../ui/theme.module.css';
+}
+
+.cardTitle {
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.tableWrap {
+  composes: tableWrap from '../../ui/theme.module.css';
+}
+
+.table {
+  composes: table from '../../ui/theme.module.css';
+}
+
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.alert {
+  composes: alert from '../../ui/theme.module.css';
+}
+
+.alertError {
+  composes: alertError from '../../ui/theme.module.css';
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.modalTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 24px 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.formGroup label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.input {
+  composes: input from '../../ui/theme.module.css';
+}
+
+.formActions {
+  display: flex;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+.roleBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inlineEdit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.roleSelect {
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #334155;
+  background: white;
+  cursor: pointer;
+}
+
+.roleSelect:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dangerButton {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #ef4444;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dangerButton:hover {
+  background: #ef4444;
+  color: white;
+}
+
+.statusBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statuspending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.statusaccepted {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.statusexpired {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+@media (max-width: 768px) {
+  .table {
+    font-size: 13px;
+  }
+
+  .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modalContent {
+    padding: 24px;
+  }
+}

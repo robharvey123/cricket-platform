@@ -33,37 +33,7 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .single()
 
-    // Fetch all players with season stats
-    const { data: teams, error: teamsError } = await supabase
-      .from('teams')
-      .select('id')
-      .eq('club_id', userRole.club_id)
-
-    if (teamsError) {
-      throw new Error(teamsError.message)
-    }
-
-    const teamIds = (teams || []).map((team) => team.id)
-
-    if (teamIds.length === 0) {
-      return NextResponse.json({ players: [], activeSeason })
-    }
-
-    const { data: teamPlayers, error: teamPlayersError } = await supabase
-      .from('team_players')
-      .select('player_id')
-      .in('team_id', teamIds)
-
-    if (teamPlayersError) {
-      throw new Error(teamPlayersError.message)
-    }
-
-    const playerIds = Array.from(new Set((teamPlayers || []).map((tp) => tp.player_id)))
-
-    if (playerIds.length === 0) {
-      return NextResponse.json({ players: [], activeSeason })
-    }
-
+    // Fetch all club players with season stats
     let playersQuery = supabase
       .from('players')
       .select(`
@@ -76,11 +46,15 @@ export async function GET(request: NextRequest) {
           bowling_economy,
           matches_batted,
           matches_bowled,
+          catches,
+          stumpings,
+          run_outs,
+          drops,
+          fielding_points,
           season_id
         )
       `)
       .eq('club_id', userRole.club_id)
-      .in('id', playerIds)
       .order('last_name', { ascending: true })
 
     let { data: players, error: playersError } = await playersQuery
@@ -91,7 +65,6 @@ export async function GET(request: NextRequest) {
         .from('players')
         .select('*')
         .eq('club_id', userRole.club_id)
-        .in('id', playerIds)
         .order('last_name', { ascending: true })
 
       if (fallback.error) {

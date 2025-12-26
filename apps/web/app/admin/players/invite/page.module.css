@@ -1,0 +1,228 @@
+.page {
+  composes: page from '../../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 12% 16%, rgba(59, 130, 246, 0.08), transparent 55%),
+    radial-gradient(circle at 88% 12%, rgba(99, 102, 241, 0.1), transparent 55%),
+    #f8fafc;
+}
+
+.shell {
+  composes: shell from '../../../ui/theme.module.css';
+  max-width: 1100px;
+}
+
+.loading {
+  composes: loading from '../../../ui/theme.module.css';
+}
+
+.backLink {
+  color: #1d4ed8;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.title {
+  composes: title from '../../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../../ui/theme.module.css';
+}
+
+.card {
+  composes: card from '../../../ui/theme.module.css';
+}
+
+.infoCard {
+  border-left: 4px solid #2563eb;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.infoTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 12px;
+}
+
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: #1e40af;
+}
+
+.inviteLinkBox {
+  margin-top: 16px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+}
+
+.inviteRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.inviteInput {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  font-size: 13px;
+  background: #f8fafc;
+}
+
+.copyButton {
+  composes: primaryButton from '../../../ui/theme.module.css';
+  padding: 8px 16px;
+}
+
+.controlsHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.controlsTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.controlsHint {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.controlButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.secondaryButton {
+  composes: secondaryButton from '../../../ui/theme.module.css';
+  padding: 8px 14px;
+}
+
+.methodCard {
+  background: rgba(148, 163, 184, 0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.methodOptions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.methodOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #334155;
+  font-weight: 600;
+}
+
+.sendButton {
+  composes: primaryButton from '../../../ui/theme.module.css';
+  width: 100%;
+}
+
+.sendButton:disabled {
+  background: #cbd5f5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.message {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.messageSuccess {
+  background: rgba(34, 197, 94, 0.15);
+  color: #166534;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.messageError {
+  background: rgba(239, 68, 68, 0.12);
+  color: #991b1b;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.tableWrap {
+  composes: tableWrap from '../../../ui/theme.module.css';
+}
+
+.table {
+  composes: table from '../../../ui/theme.module.css';
+}
+
+.checkboxCell {
+  width: 36px;
+  text-align: center;
+}
+
+.rowSelected {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.statusBadge {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusPending {
+  background: rgba(250, 204, 21, 0.2);
+  color: #92400e;
+}
+
+.statusJoined {
+  background: rgba(34, 197, 94, 0.2);
+  color: #166534;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 32px;
+  color: #64748b;
+}
+
+.inviteList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.inviteItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.12);
+}

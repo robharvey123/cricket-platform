@@ -1,0 +1,201 @@
+.page {
+  composes: page from '../../ui/theme.module.css';
+  background:
+    radial-gradient(circle at 12% 20%, rgba(59, 130, 246, 0.08), transparent 55%),
+    radial-gradient(circle at 88% 18%, rgba(16, 185, 129, 0.1), transparent 55%),
+    #f8fafc;
+}
+
+.shell {
+  composes: shell from '../../ui/theme.module.css';
+  max-width: 1100px;
+}
+
+.header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.title {
+  composes: title from '../../ui/theme.module.css';
+}
+
+.subtitle {
+  composes: subtitle from '../../ui/theme.module.css';
+  margin: 0 auto;
+}
+
+.loading {
+  composes: loading from '../../ui/theme.module.css';
+}
+
+.stepsCard {
+  composes: card from '../../ui/theme.module.css';
+  padding: 32px;
+}
+
+.stepList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.stepCard {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 2px solid transparent;
+  background: #f8fafc;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.stepCardActive {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.stepCardComplete {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.stepCardIdle {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(248, 250, 252, 0.9);
+}
+
+.stepBadge {
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.stepBadgeActive {
+  background: #1d4ed8;
+  color: #fff;
+}
+
+.stepBadgeComplete {
+  background: #10b981;
+  color: #fff;
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.stepDescription {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.stepAction {
+  composes: primaryButton from '../../ui/theme.module.css';
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 999px;
+}
+
+.stepManage {
+  color: #1d4ed8;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.connector {
+  width: 2px;
+  height: 20px;
+  background: rgba(148, 163, 184, 0.5);
+  margin-left: 20px;
+}
+
+.quickCard {
+  composes: card from '../../ui/theme.module.css';
+  padding: 24px;
+}
+
+.quickGrid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.quickItem {
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  border-radius: 14px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.quickItem:hover {
+  border-color: rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.quickTitle {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.quickSubtitle {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.skipLink {
+  text-align: center;
+  font-weight: 600;
+  color: #475569;
+  text-decoration: none;
+}
+
+.skipLink:hover {
+  color: #0f172a;
+}
+
+.infoBox {
+  border-radius: 14px;
+  padding: 16px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.08);
+  color: #1d4ed8;
+  font-size: 14px;
+}
+
+.infoBox strong {
+  color: #1e3a8a;
+}
+
+.infoExample {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  color: #475569;
+  font-size: 12px;
+}
