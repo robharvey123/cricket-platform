@@ -207,6 +207,60 @@
   composes: alertError from '../../../ui/theme.module.css';
 }
 
+.alertInfo {
+  composes: alertInfo from '../../../ui/theme.module.css';
+}
+
+.countdownRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.countdownValue {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.countdownTrack {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.18);
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+.countdownFill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.85), rgba(14, 165, 233, 0.85));
+  transition: width 0.3s ease;
+}
+
+.countdownFillIndeterminate {
+  width: 45%;
+  animation: countdownPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes countdownPulse {
+  0% {
+    transform: translateX(-20%);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(60%);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(140%);
+    opacity: 0.6;
+  }
+}
+
 @media (max-width: 900px) {
   .matchHeader {
     flex-direction: column;

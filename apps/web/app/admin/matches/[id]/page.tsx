@@ -90,11 +90,26 @@ export default function MatchDetailPage() {
   const [fullScorecard, setFullScorecard] = useState<any | null>(null)
   const [scorecardError, setScorecardError] = useState<string | null>(null)
   const [scorecardLoading, setScorecardLoading] = useState(false)
+  const [publishCountdown, setPublishCountdown] = useState<number | null>(null)
+  const [publishStage, setPublishStage] = useState<'publishing' | 'countdown' | null>(null)
+  const publishCountdownTotal = 3
   const fieldingPrefillRef = useRef(false)
 
   useEffect(() => {
     fetchMatch()
   }, [matchId])
+
+  useEffect(() => {
+    if (publishCountdown === null || publishStage !== 'countdown') return
+    if (publishCountdown <= 0) {
+      router.push('/admin/matches')
+      return
+    }
+    const timer = setTimeout(() => {
+      setPublishCountdown((current) => (current === null ? null : current - 1))
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [publishCountdown, router])
 
   useEffect(() => {
     if (!match?.club_id || !match?.source_match_id) return
@@ -166,6 +181,7 @@ export default function MatchDetailPage() {
 
     setPublishing(true)
     setError(null)
+    setPublishStage('publishing')
 
     try {
       // Update match to published
@@ -198,8 +214,11 @@ export default function MatchDetailPage() {
 
       // Refresh match data
       await fetchMatch()
+      setPublishCountdown(publishCountdownTotal)
+      setPublishStage('countdown')
     } catch (err: any) {
       setError(err.message)
+      setPublishStage(null)
     } finally {
       setPublishing(false)
     }
@@ -328,6 +347,31 @@ export default function MatchDetailPage() {
             </button>
           </div>
         </div>
+
+        {publishStage && (
+          <div className={`${styles.alert} ${styles.alertInfo}`}>
+            <div className={styles.countdownRow}>
+              <span>
+                {publishStage === 'publishing'
+                  ? 'Publishing match and recalculating stats...'
+                  : `Published. Returning to Matches in ${publishCountdown}s...`}
+              </span>
+              {publishStage === 'countdown' && (
+                <span className={styles.countdownValue}>{publishCountdown}s</span>
+              )}
+            </div>
+            <div className={styles.countdownTrack}>
+              <div
+                className={`${styles.countdownFill} ${publishStage === 'publishing' ? styles.countdownFillIndeterminate : ''}`}
+                style={{
+                  width: publishStage === 'countdown'
+                    ? `${((publishCountdownTotal - (publishCountdown || 0)) / publishCountdownTotal) * 100}%`
+                    : undefined
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         <section className={styles.card}>
           <div className={styles.matchHeader}>

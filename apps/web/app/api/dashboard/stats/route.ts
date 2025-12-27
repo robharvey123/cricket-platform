@@ -27,6 +27,12 @@ export async function GET(request: NextRequest) {
     }
 
     const clubId = userRole.club_id;
+    const { data: club } = await supabase
+      .from('clubs')
+      .select('name')
+      .eq('id', clubId)
+      .single();
+    const clubName = club?.name || '';
 
     // Get active season
     const { data: season } = await supabase
@@ -49,12 +55,30 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Get total matches for active season
-    const { count: totalMatches } = await supabase
+    const { count: publishedMatchCount } = await supabase
+      .from('matches')
+      .select('*', { count: 'exact', head: true })
+      .eq('club_id', clubId)
+      .eq('season_id', season.id)
+      .eq('published', true);
+    const { count: seasonMatchCount } = await supabase
       .from('matches')
       .select('*', { count: 'exact', head: true })
       .eq('club_id', clubId)
       .eq('season_id', season.id);
+    const useSeason = (seasonMatchCount || 0) > 0;
+    const usePublished = (publishedMatchCount || 0) > 0;
+
+    const applyMatchFilters = (query: any) => {
+      let filtered = query.eq('club_id', clubId);
+      if (useSeason) {
+        filtered = filtered.eq('season_id', season.id);
+      }
+      if (usePublished) {
+        filtered = filtered.eq('published', true);
+      }
+      return filtered;
+    };
 
     // Get total players
     const { count: totalPlayers } = await supabase
@@ -63,33 +87,35 @@ export async function GET(request: NextRequest) {
       .eq('club_id', clubId);
 
     // Get recent matches with aggregated stats
-    const { data: recentMatches } = await supabase
-      .from('matches')
-      .select(
+    const recentMatchesQuery = applyMatchFilters(
+      supabase
+        .from('matches')
+        .select(
+          `
+          id,
+          match_date,
+          opponent_name,
+          result
         `
-        id,
-        match_date,
-        opponent_name,
-        result
-      `
-      )
-      .eq('club_id', clubId)
-      .eq('season_id', season.id)
+        )
+    )
       .order('match_date', { ascending: false })
-      .limit(10);
+      .limit(6);
+    const { data: recentMatches } = await recentMatchesQuery;
+    const effectiveRecentMatches = recentMatches || [];
 
     // For each match, get total runs and wickets
     const matchesWithStats = await Promise.all(
-      (recentMatches || []).map(async (match) => {
+      (effectiveRecentMatches || []).map(async (match) => {
         // Get innings for this match
         const { data: innings } = await supabase
           .from('innings')
-          .select('runs, wickets, is_batting')
+          .select('total_runs, wickets, batting_team')
           .eq('match_id', match.id);
 
-        // Sum runs and wickets from our batting innings
-        const ourInnings = innings?.filter((i) => i.is_batting) || [];
-        const total_runs = ourInnings.reduce((sum, i) => sum + (i.runs || 0), 0);
+        // Sum runs from our batting innings
+        const ourInnings = innings?.filter((i) => i.batting_team === 'home') || [];
+        const total_runs = ourInnings.reduce((sum, i) => sum + (i.total_runs || 0), 0);
 
         // Get wickets we took (from bowling cards)
         const { data: bowlingCards } = await supabase
@@ -155,21 +181,52 @@ export async function GET(request: NextRequest) {
       })) || [];
 
     // Get results breakdown
-    const { data: allMatches } = await supabase
-      .from('matches')
-      .select('result')
-      .eq('club_id', clubId)
-      .eq('season_id', season.id);
+    const { data: allMatches } = await applyMatchFilters(
+      supabase
+        .from('matches')
+        .select('result, opponent_name')
+    );
+    const effectiveAllMatches = allMatches || [];
+
+    const { count: totalMatchCount } = await applyMatchFilters(
+      supabase
+        .from('matches')
+        .select('*', { count: 'exact', head: true })
+    );
+
+    const normalizeResult = (value?: string | null, opponent?: string | null) => {
+      const normalized = (value || '').toLowerCase().trim();
+      if (!normalized) return null;
+      if (['won', 'lost', 'tied', 'draw'].includes(normalized)) {
+        return normalized as 'won' | 'lost' | 'tied' | 'draw';
+      }
+      if (normalized.includes('abandon')) return 'draw';
+      if (normalized.includes('draw')) return 'draw';
+      if (normalized.includes('tie')) return 'tied';
+      if (normalized.includes('lost')) return 'lost';
+      if (normalized.includes('win')) {
+        const opponentName = (opponent || '').toLowerCase();
+        const clubNameLower = clubName.toLowerCase();
+        if (clubNameLower && normalized.includes(clubNameLower)) {
+          return 'won';
+        }
+        if (opponentName && normalized.includes(opponentName)) {
+          return 'lost';
+        }
+        return 'won';
+      }
+      return null;
+    };
 
     const resultsBreakdown = {
-      won: allMatches?.filter((m) => m.result === 'won').length || 0,
-      lost: allMatches?.filter((m) => m.result === 'lost').length || 0,
-      tied: allMatches?.filter((m) => m.result === 'tied').length || 0,
-      draw: allMatches?.filter((m) => m.result === 'draw').length || 0,
+      won: effectiveAllMatches?.filter((m) => normalizeResult(m.result, m.opponent_name) === 'won').length || 0,
+      lost: effectiveAllMatches?.filter((m) => normalizeResult(m.result, m.opponent_name) === 'lost').length || 0,
+      tied: effectiveAllMatches?.filter((m) => normalizeResult(m.result, m.opponent_name) === 'tied').length || 0,
+      draw: effectiveAllMatches?.filter((m) => normalizeResult(m.result, m.opponent_name) === 'draw').length || 0,
     };
 
     return NextResponse.json({
-      totalMatches: totalMatches || 0,
+      totalMatches: totalMatchCount || 0,
       totalPlayers: totalPlayers || 0,
       recentMatches: matchesWithStats,
       topBatsmen: formattedBatsmen,
