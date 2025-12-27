@@ -48,6 +48,12 @@
   composes: card from '../../../../ui/theme.module.css';
 }
 
+.errorText {
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 600;
+}
+
 .cardHeader {
   margin-bottom: 18px;
 }

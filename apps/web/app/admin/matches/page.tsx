@@ -29,6 +29,7 @@ export default function MatchesPage() {
   const [typeFilter, setTypeFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
   const [sortBy, setSortBy] = useState('date_desc')
+  const [selectedMatchIds, setSelectedMatchIds] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -72,6 +73,33 @@ export default function MatchesPage() {
     } catch (err: any) {
       setError(err.message)
     }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedMatchIds.length === 0) return
+
+    if (!confirm(`Delete ${selectedMatchIds.length} match(es)? This action cannot be undone.`)) {
+      return
+    }
+
+    setError(null)
+
+    const results = await Promise.allSettled(
+      selectedMatchIds.map((matchId) =>
+        fetch(`/api/matches/${matchId}`, { method: 'DELETE' })
+      )
+    )
+
+    const failedDeletes = results.filter(
+      (result) => result.status === 'rejected'
+    )
+
+    if (failedDeletes.length > 0) {
+      setError(`Failed to delete ${failedDeletes.length} match(es).`)
+    }
+
+    setSelectedMatchIds([])
+    fetchMatches()
   }
 
   const teamOptions = useMemo(() => {
@@ -163,6 +191,18 @@ export default function MatchesPage() {
     teamFilter,
     typeFilter
   ])
+
+  const visibleMatchIds = useMemo(
+    () => filteredMatches.map((match) => match.id),
+    [filteredMatches]
+  )
+  const selectedMatchIdSet = useMemo(
+    () => new Set(selectedMatchIds),
+    [selectedMatchIds]
+  )
+  const allVisibleSelected =
+    visibleMatchIds.length > 0 &&
+    visibleMatchIds.every((id) => selectedMatchIdSet.has(id))
 
   if (loading) {
     return (
@@ -302,10 +342,37 @@ export default function MatchesPage() {
           </section>
         ) : (
           <section className={styles.tableCard}>
+            <div className={styles.bulkBar}>
+              <div className={styles.bulkInfo}>
+                {selectedMatchIds.length > 0
+                  ? `${selectedMatchIds.length} selected`
+                  : 'Select matches to delete'}
+              </div>
+              <button
+                className={styles.bulkDeleteButton}
+                onClick={handleBulkDelete}
+                disabled={selectedMatchIds.length === 0}
+              >
+                Delete Selected
+              </button>
+            </div>
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
                   <tr>
+                    <th className={styles.checkboxCell}>
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={(event) => {
+                          if (event.target.checked) {
+                            setSelectedMatchIds(visibleMatchIds)
+                          } else {
+                            setSelectedMatchIds([])
+                          }
+                        }}
+                      />
+                    </th>
                     <th>Date</th>
                     <th>Team</th>
                     <th>Opponent</th>
@@ -327,6 +394,22 @@ export default function MatchesPage() {
 
                     return (
                       <tr key={match.id} className={styles.row}>
+                        <td className={styles.checkboxCell}>
+                          <input
+                            type="checkbox"
+                            checked={selectedMatchIdSet.has(match.id)}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => {
+                              const next = new Set(selectedMatchIdSet)
+                              if (event.target.checked) {
+                                next.add(match.id)
+                              } else {
+                                next.delete(match.id)
+                              }
+                              setSelectedMatchIds(Array.from(next))
+                            }}
+                          />
+                        </td>
                         <td
                           className={styles.cellButton}
                           onClick={() => router.push(`/admin/matches/${match.id}`)}

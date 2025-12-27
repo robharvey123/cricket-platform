@@ -53,6 +53,14 @@ export default function InvitePlayersPage() {
         // Generate invite link based on club slug
         const baseUrl = window.location.origin
         setInviteLink(`${baseUrl}/join/${data.club.slug}`)
+        return
+      }
+      const fallback = await fetch('/api/onboarding/status')
+      if (fallback.ok) {
+        const data = await fallback.json()
+        setClubName(data.club.name)
+        const baseUrl = window.location.origin
+        setInviteLink(`${baseUrl}/join/${data.club.slug}`)
       }
     } catch (error) {
       console.error('Failed to fetch club info:', error)

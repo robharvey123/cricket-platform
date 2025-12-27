@@ -286,7 +286,7 @@ export default function PlayerProfilePage() {
                   data={performanceSeries}
                   xKey="match"
                   lines={[{ dataKey: 'points', name: 'Points', color: '#0ea5e9' }]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend={false}
                 />
@@ -302,7 +302,7 @@ export default function PlayerProfilePage() {
                     { dataKey: 'bowling', name: 'Bowling', color: '#10b981', stackId: '1' },
                     { dataKey: 'fielding', name: 'Fielding', color: '#f59e0b', stackId: '1' },
                   ]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend
                 />
@@ -317,7 +317,7 @@ export default function PlayerProfilePage() {
                     { dataKey: 'runs', name: 'Runs', color: '#8b5cf6' },
                     { dataKey: 'balls', name: 'Balls', color: '#94a3b8' }
                   ]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend
                 />
@@ -332,7 +332,7 @@ export default function PlayerProfilePage() {
                     { dataKey: 'wickets', name: 'Wickets', color: '#10b981' },
                     { dataKey: 'economy', name: 'Economy', color: '#f97316' }
                   ]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend
                 />
@@ -349,7 +349,7 @@ export default function PlayerProfilePage() {
                       { dataKey: 'stumpings', name: 'Stumpings', color: '#f59e0b', stackId: '1' },
                       { dataKey: 'runOuts', name: 'Run Outs', color: '#10b981', stackId: '1' }
                     ]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend
                   />
@@ -364,7 +364,7 @@ export default function PlayerProfilePage() {
                   data={performanceSeries}
                   xKey="match"
                   lines={[{ dataKey: 'fieldingPoints', name: 'Fielding Points', color: '#f59e0b' }]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend={false}
                 />
@@ -376,7 +376,7 @@ export default function PlayerProfilePage() {
                   data={performanceSeries}
                   xKey="match"
                   lines={[{ dataKey: 'strikeRate', name: 'Strike Rate', color: '#6366f1' }]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend={false}
                 />
@@ -388,7 +388,7 @@ export default function PlayerProfilePage() {
                   data={performanceSeries}
                   xKey="runs"
                   yKey="points"
-                  height={220}
+                  height={260}
                   xAxisLabel="Runs"
                   yAxisLabel="Points"
                   color="#0ea5e9"
@@ -401,7 +401,7 @@ export default function PlayerProfilePage() {
                   data={performanceSeries}
                   xKey="match"
                   lines={[{ dataKey: 'economy', name: 'Economy', color: '#f97316' }]}
-                  height={220}
+                  height={260}
                   showGrid
                   showLegend={false}
                 />
@@ -413,7 +413,7 @@ export default function PlayerProfilePage() {
                   data={performanceSeries}
                   xKey="runsConceded"
                   yKey="wickets"
-                  height={220}
+                  height={260}
                   xAxisLabel="Runs Conceded"
                   yAxisLabel="Wickets"
                   color="#10b981"

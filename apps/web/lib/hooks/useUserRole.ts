@@ -4,6 +4,7 @@ import { type UserRole, getPermissions, type Permission } from '../permissions'
 export interface UseUserRoleResult {
   role: UserRole | null
   permissions: Permission | null
+  clubId: string | null
   loading: boolean
   error: string | null
 }
@@ -13,6 +14,7 @@ export interface UseUserRoleResult {
  */
 export function useUserRole(): UseUserRoleResult {
   const [role, setRole] = useState<UserRole | null>(null)
+  const [clubId, setClubId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,9 +32,11 @@ export function useUserRole(): UseUserRoleResult {
       }
 
       setRole(data.role as UserRole)
+      setClubId(data.clubId ?? null)
     } catch (err: any) {
       setError(err.message)
       setRole('player') // Default to player role
+      setClubId(null)
     } finally {
       setLoading(false)
     }
@@ -43,6 +47,7 @@ export function useUserRole(): UseUserRoleResult {
   return {
     role,
     permissions,
+    clubId,
     loading,
     error,
   }

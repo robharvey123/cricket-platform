@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import styles from './page.module.css'
@@ -42,6 +42,17 @@ interface BowlingCard {
   player_id?: string | null
 }
 
+interface FieldingCard {
+  id: string
+  catches: number
+  stumpings: number
+  run_outs: number
+  drops: number
+  misfields: number
+  players?: Player | null
+  player_id?: string | null
+}
+
 interface Innings {
   id: string
   innings_number: number
@@ -56,13 +67,16 @@ interface Innings {
 
 interface Match {
   id: string
+  club_id?: string | null
   match_date: string
   opponent_name: string
   venue: string | null
   match_type: string
   result: string
   published: boolean
+  source_match_id?: string | null
   innings: Innings[]
+  fielding_cards?: FieldingCard[]
 }
 
 export default function MatchDetailPage() {
@@ -73,10 +87,19 @@ export default function MatchDetailPage() {
   const [loading, setLoading] = useState(true)
   const [publishing, setPublishing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fullScorecard, setFullScorecard] = useState<any | null>(null)
+  const [scorecardError, setScorecardError] = useState<string | null>(null)
+  const [scorecardLoading, setScorecardLoading] = useState(false)
+  const fieldingPrefillRef = useRef(false)
 
   useEffect(() => {
     fetchMatch()
   }, [matchId])
+
+  useEffect(() => {
+    if (!match?.club_id || !match?.source_match_id) return
+    fetchFullScorecard(match.club_id, match.source_match_id)
+  }, [match?.club_id, match?.source_match_id])
 
   const fetchMatch = async () => {
     try {
@@ -87,13 +110,56 @@ export default function MatchDetailPage() {
         throw new Error(data.error || 'Failed to fetch match')
       }
 
-      setMatch(data.match)
+      const nextMatch = data.match
+      setMatch(nextMatch)
+
+      const needsFieldingPrefill = nextMatch?.source_match_id &&
+        Array.isArray(nextMatch?.fielding_cards) &&
+        nextMatch.fielding_cards.length > 0 &&
+        nextMatch.fielding_cards.every((card: any) =>
+          (card.catches || 0) === 0 &&
+          (card.run_outs || 0) === 0 &&
+          (card.stumpings || 0) === 0 &&
+          (card.drops || 0) === 0 &&
+          (card.misfields || 0) === 0
+        )
+
+      if (!fieldingPrefillRef.current && needsFieldingPrefill) {
+        fieldingPrefillRef.current = true
+        try {
+          await fetch(`/api/matches/${matchId}/fielding`, { method: 'POST' })
+          await fetchMatch()
+        } catch {
+          // Ignore fielding prefill errors
+        }
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {
       setLoading(false)
     }
   }
+
+  const fetchFullScorecard = async (clubId: string, sourceMatchId: string) => {
+    setScorecardLoading(true)
+    setScorecardError(null)
+    try {
+      const response = await fetch(
+        `/api/play-cricket/match-detail?clubId=${clubId}&matchId=${sourceMatchId}`
+      )
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load scorecard')
+      }
+      setFullScorecard(data.match_detail || null)
+    } catch (err: any) {
+      setScorecardError(err.message)
+    } finally {
+      setScorecardLoading(false)
+    }
+  }
+
+  const normalizeEntries = (value: any) => (Array.isArray(value) ? value : value ? [value] : [])
 
   const handlePublish = async () => {
     if (!match) return
@@ -191,6 +257,48 @@ export default function MatchDetailPage() {
   }
 
   const hasInnings = match.innings && match.innings.length > 0
+  const hasFielding = (match.fielding_cards || []).length > 0
+
+  const parseDismissalNames = (text: string | null | undefined) => {
+    if (!text) return { bowler: '', fielder: '' }
+    const lower = text.toLowerCase()
+    let bowler = ''
+    let fielder = ''
+    const bowlerMatch = lower.includes(' b ')
+      ? text.split(/ b /i).slice(1).join(' b ').trim()
+      : ''
+    if (bowlerMatch) {
+      bowler = bowlerMatch
+    }
+    const fielderMatch = lower.includes(' ct ')
+      ? text.split(/ ct /i).slice(1).join(' ct ').split(/ b /i)[0].trim()
+      : lower.includes(' c ')
+        ? text.split(/ c /i).slice(1).join(' c ').split(/ b /i)[0].trim()
+        : ''
+    if (fielderMatch) {
+      fielder = fielderMatch
+    }
+    if (!fielder && lower.includes('run out')) {
+      const match = text.match(/\((.*?)\)/)
+      if (match && match[1]) {
+        fielder = match[1]
+      }
+    }
+    return { bowler, fielder }
+  }
+
+  const shortDismissal = (value: string | null | undefined) => {
+    const normalized = (value || '').toLowerCase()
+    if (normalized === 'caught') return 'ct'
+    if (normalized === 'bowled') return 'b'
+    if (normalized === 'lbw') return 'lbw'
+    if (normalized === 'run out') return 'run out'
+    if (normalized === 'stumped') return 'st'
+    if (normalized === 'hit wicket') return 'hit wicket'
+    if (normalized === 'retired') return 'retired'
+    if (normalized === 'not out') return 'not out'
+    return normalized || ''
+  }
 
   return (
     <div className={styles.page}>
@@ -271,7 +379,7 @@ export default function MatchDetailPage() {
                 <div className={styles.sectionHeader}>
                   <h2>
                     Innings {innings.innings_number} -{' '}
-                    {innings.batting_team === 'home' ? 'Brookweald CC' : match.opponent_name}
+                    {innings.batting_team === 'home' ? 'Brookweald Batting' : 'Brookweald Bowling'}
                   </h2>
                   <span className={styles.pill}>Scorecard</span>
                 </div>
@@ -288,13 +396,11 @@ export default function MatchDetailPage() {
                   </div>
                 )}
 
-                {innings.batting_cards.length > 0 && (
+                {innings.batting_team === 'home' && innings.batting_cards.length > 0 && (
                   <div className={styles.tableBlock}>
                     <div className={styles.tableHeader}>
                       <h3>Batting</h3>
-                      <span className={styles.muted}>
-                        {innings.batting_team === 'home' ? 'Brookweald innings' : 'Opposition innings'}
-                      </span>
+                      <span className={styles.muted}>Brookweald batting</span>
                     </div>
                     <div className={styles.tableWrap}>
                       <table className={styles.table}>
@@ -306,9 +412,9 @@ export default function MatchDetailPage() {
                             <th>4s</th>
                             <th>6s</th>
                             <th>SR</th>
-                            <th>Type</th>
-                            <th>Bowler</th>
                             <th>Fielder</th>
+                            <th>Bowler</th>
+                            <th>How Out</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -329,15 +435,19 @@ export default function MatchDetailPage() {
                                 <td>{card.sixes}</td>
                                 <td>{card.strike_rate ? card.strike_rate.toFixed(1) : '-'}</td>
                                 <td className={styles.muted}>
+                                  {card.dismissal_fielder_name ||
+                                    parseDismissalNames(card.dismissal_text).fielder ||
+                                    '-'}
+                                </td>
+                                <td className={styles.muted}>
+                                  {card.dismissal_bowler_name ||
+                                    parseDismissalNames(card.dismissal_text).bowler ||
+                                    '-'}
+                                </td>
+                                <td className={styles.muted}>
                                   {card.is_out
-                                    ? (card.dismissal_type || card.dismissal_text || 'out')
+                                    ? (shortDismissal(card.dismissal_type) || card.dismissal_text || 'out')
                                     : 'not out'}
-                                </td>
-                                <td className={styles.muted}>
-                                  {card.dismissal_bowler_name || '-'}
-                                </td>
-                                <td className={styles.muted}>
-                                  {card.dismissal_fielder_name || '-'}
                                 </td>
                               </tr>
                             ))}
@@ -347,13 +457,11 @@ export default function MatchDetailPage() {
                   </div>
                 )}
 
-                {innings.bowling_cards.length > 0 && (
+                {innings.batting_team === 'away' && innings.bowling_cards.length > 0 && (
                   <div className={styles.tableBlock}>
                     <div className={styles.tableHeader}>
                       <h3>Bowling</h3>
-                      <span className={styles.muted}>
-                        {innings.batting_team === 'home' ? 'Opposition bowlers' : 'Brookweald bowlers'}
-                      </span>
+                      <span className={styles.muted}>Brookweald bowling</span>
                     </div>
                     <div className={styles.tableWrap}>
                       <table className={styles.table}>
@@ -397,6 +505,147 @@ export default function MatchDetailPage() {
           <section className={styles.card}>
             <h2>Match Details</h2>
             <p className={styles.muted}>No scorecard data available for this match yet.</p>
+          </section>
+        )}
+
+        {hasFielding && (
+          <section className={styles.card}>
+            <div className={styles.sectionHeader}>
+              <h2>Fielding</h2>
+              <span className={styles.muted}>Brookweald fielding summary</span>
+            </div>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>Catches</th>
+                    <th>Run outs</th>
+                    <th>Stumpings</th>
+                    <th>Drops</th>
+                    <th>Misfields</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(match.fielding_cards || []).map((card) => (
+                    <tr key={card.id}>
+                      <td>
+                        {card.players
+                          ? `${card.players.first_name} ${card.players.last_name}`
+                          : card.player_id
+                            ? `Player ${card.player_id.slice(0, 6)}`
+                            : 'Unknown Player'}
+                      </td>
+                      <td>{card.catches}</td>
+                      <td>{card.run_outs}</td>
+                      <td>{card.stumpings}</td>
+                      <td>{card.drops}</td>
+                      <td>{card.misfields}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        {(fullScorecard || scorecardLoading || scorecardError) && (
+          <section className={styles.card}>
+            <div className={styles.sectionHeader}>
+              <h2>Full Scorecard</h2>
+              <span className={styles.muted}>Play Cricket read-only data</span>
+            </div>
+            {scorecardLoading && (
+              <p className={styles.muted}>Loading scorecard...</p>
+            )}
+            {scorecardError && (
+              <p className={styles.errorText}>{scorecardError}</p>
+            )}
+            {fullScorecard && (
+              <div className={styles.tableBlock}>
+                {(fullScorecard.innings || []).map((innings: any, idx: number) => {
+                  const battingEntries = normalizeEntries(
+                    innings.bat || innings.batting || innings.batting_cards || innings.batters || innings.batsmen
+                  )
+                  const bowlingEntries = normalizeEntries(
+                    innings.bowl || innings.bowling || innings.bowling_cards || innings.bowlers
+                  )
+
+                  return (
+                    <div key={`${innings.team_batting_name || 'innings'}-${idx}`} className={styles.tableBlock}>
+                      <div className={styles.tableHeader}>
+                        <h3>{innings.team_batting_name || `Innings ${idx + 1}`}</h3>
+                        <span className={styles.muted}>Full scorecard</span>
+                      </div>
+
+                      {battingEntries.length > 0 && (
+                        <div className={styles.tableWrap}>
+                          <table className={styles.table}>
+                            <thead>
+                              <tr>
+                                <th>Batter</th>
+                                <th>R</th>
+                                <th>B</th>
+                                <th>4s</th>
+                                <th>6s</th>
+                                <th>How Out</th>
+                                <th>Fielder</th>
+                                <th>Bowler</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {battingEntries.map((entry: any, entryIdx: number) => (
+                                <tr key={`${entry.batsman_name || entry.player_name || 'batter'}-${entryIdx}`}>
+                                  <td>{entry.batsman_name || entry.player_name || entry.name || '-'}</td>
+                                  <td>{entry.runs ?? entry.r ?? '-'}</td>
+                                  <td>{entry.balls ?? entry.balls_faced ?? entry.b ?? '-'}</td>
+                                  <td>{entry.fours ?? entry['4s'] ?? '-'}</td>
+                                  <td>{entry.sixes ?? entry['6s'] ?? '-'}</td>
+                                  <td>{entry.how_out || entry.dismissal || '-'}</td>
+                                  <td>{entry.fielder_name || entry.fielder || '-'}</td>
+                                  <td>{entry.bowler_name || entry.bowler || '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                      {bowlingEntries.length > 0 && (
+                        <div className={styles.tableWrap}>
+                          <table className={styles.table}>
+                            <thead>
+                              <tr>
+                                <th>Bowler</th>
+                                <th>O</th>
+                                <th>M</th>
+                                <th>R</th>
+                                <th>W</th>
+                                <th>Wd</th>
+                                <th>Nb</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {bowlingEntries.map((entry: any, entryIdx: number) => (
+                                <tr key={`${entry.bowler_name || entry.player_name || 'bowler'}-${entryIdx}`}>
+                                  <td>{entry.bowler_name || entry.player_name || entry.name || '-'}</td>
+                                  <td>{entry.overs ?? entry.o ?? '-'}</td>
+                                  <td>{entry.maidens ?? entry.m ?? '-'}</td>
+                                  <td>{entry.runs ?? entry.r ?? entry.runs_conceded ?? '-'}</td>
+                                  <td>{entry.wickets ?? entry.w ?? '-'}</td>
+                                  <td>{entry.wides ?? entry.wd ?? '-'}</td>
+                                  <td>{entry.no_balls ?? entry.nb ?? '-'}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </section>
         )}
       </div>

@@ -52,6 +52,7 @@ export async function POST(request: Request) {
     }
 
     const formula = config.formula_json as ScoringFormula
+    const matchScope = formula?.meta?.match_scope || 'all'
 
     // Parse request body
     const body = await request.json().catch(() => ({}))
@@ -60,8 +61,9 @@ export async function POST(request: Request) {
     // Build query for matches
     let matchQuery = supabase
       .from('matches')
-      .select('id, team_id, match_date')
+      .select('id, team_id, match_date, match_type')
       .eq('club_id', membership.club_id)
+      .eq('published', true)
       .order('match_date', { ascending: false })
 
     if (matchIds && matchIds.length > 0) {
@@ -70,12 +72,17 @@ export async function POST(request: Request) {
 
     const { data: matches, error: matchError } = await matchQuery
 
+    const scopedMatches =
+      matchScope === 'league'
+        ? (matches || []).filter((match) => (match as any).match_type === 'league')
+        : matches || []
+
     if (matchError) {
       console.error('Error fetching matches:', matchError)
       return NextResponse.json({ error: 'Failed to fetch matches' }, { status: 500 })
     }
 
-    if (!matches || matches.length === 0) {
+    if (!scopedMatches || scopedMatches.length === 0) {
       return NextResponse.json({ message: 'No matches to process', processed: 0 })
     }
 
@@ -83,7 +90,7 @@ export async function POST(request: Request) {
     const errors: { matchId: string; error: string }[] = []
 
     // Process each match
-    for (const match of matches) {
+    for (const match of scopedMatches) {
       try {
         // Get all team players for this match
         const { data: teamPlayers } = await supabase

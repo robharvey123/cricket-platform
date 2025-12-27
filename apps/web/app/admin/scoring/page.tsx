@@ -102,6 +102,9 @@ export default function ScoringConfigPage() {
       for (let i = 0; i < path.length - 1; i++) {
         const key = path[i]
         if (key !== undefined) {
+          if (current[key] === undefined || current[key] === null) {
+            current[key] = {}
+          }
           current = current[key]
         }
       }
@@ -162,6 +165,17 @@ export default function ScoringConfigPage() {
               placeholder="e.g., 2025 Season Scoring"
               className={styles.field}
             />
+          </label>
+          <label className={styles.fieldLabel}>
+            MVP Match Scope
+            <select
+              value={formula.meta?.match_scope || 'all'}
+              onChange={(e) => updateFormula(['meta', 'match_scope'], e.target.value)}
+              className={styles.field}
+            >
+              <option value="all">All matches</option>
+              <option value="league">League only</option>
+            </select>
           </label>
         </section>
 

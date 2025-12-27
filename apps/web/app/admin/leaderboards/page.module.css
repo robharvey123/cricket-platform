@@ -89,6 +89,41 @@
   margin-bottom: 20px;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filterControl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.filterLabel {
+  font-size: 11px;
+}
+
+.filterSelect {
+  min-width: 200px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(148, 163, 184, 0.2);
+  appearance: none;
+}
+
 .tabs {
   display: flex;
   gap: 8px;

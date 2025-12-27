@@ -4,6 +4,8 @@ import { createClient } from '../../../lib/supabase/server'
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
+    const { searchParams } = new URL(request.url)
+    const teamId = searchParams.get('teamId')
 
     // Get authenticated user
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -37,61 +39,64 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No active season found' }, { status: 404 })
     }
 
-    const { data: battingLeaderboard } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', activeSeason.id)
-      .eq('club_id', userRole.club_id)
-      .gt('innings_batted', 0)
-      .order('runs_scored', { ascending: false })
-      .limit(20)
+    let teamPlayerIds: string[] | null = null
+    if (teamId && teamId !== 'all') {
+      const { data: team } = await supabase
+        .from('teams')
+        .select('id')
+        .eq('id', teamId)
+        .eq('club_id', userRole.club_id)
+        .single()
 
-    const { data: bowlingLeaderboard } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', activeSeason.id)
-      .eq('club_id', userRole.club_id)
-      .gt('innings_bowled', 0)
-      .order('wickets', { ascending: false })
-      .limit(20)
+      if (!team?.id) {
+        return NextResponse.json({ error: 'Team not found' }, { status: 404 })
+      }
 
-    const { data: pointsLeaderboard } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', activeSeason.id)
-      .eq('club_id', userRole.club_id)
-      .gt('total_points', 0)
-      .order('total_points', { ascending: false })
-      .limit(20)
+      const { data: teamPlayers } = await supabase
+        .from('team_players')
+        .select('player_id')
+        .eq('team_id', team.id)
 
-    const { data: averageLeaderboard } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', activeSeason.id)
-      .eq('club_id', userRole.club_id)
-      .gte('innings_batted', 3)
-      .not('batting_average', 'is', null)
-      .order('batting_average', { ascending: false })
-      .limit(10)
+      teamPlayerIds = (teamPlayers || []).map((row: any) => row.player_id)
+    }
 
-    const { data: economyLeaderboard } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', activeSeason.id)
-      .eq('club_id', userRole.club_id)
-      .gte('overs_bowled', 10)
-      .not('bowling_economy', 'is', null)
-      .order('bowling_economy', { ascending: true })
-      .limit(10)
+    const makeQuery = () =>
+      supabase
+        .from('player_season_stats')
+        .select('*')
+        .eq('season_id', activeSeason.id)
+        .eq('club_id', userRole.club_id)
 
-    const { data: fieldingLeaderboard } = await supabase
-      .from('player_season_stats')
-      .select('*')
-      .eq('season_id', activeSeason.id)
-      .eq('club_id', userRole.club_id)
-      .or('fielding_points.gt.0,catches.gt.0,stumpings.gt.0,run_outs.gt.0,drops.gt.0')
-      .order('fielding_points', { ascending: false })
-      .limit(20)
+    const applyTeamFilter = (query: any) => {
+      if (Array.isArray(teamPlayerIds)) {
+        return teamPlayerIds.length > 0 ? query.in('player_id', teamPlayerIds) : null
+      }
+      return query
+    }
+
+    const battingQuery = applyTeamFilter(makeQuery().gt('innings_batted', 0).order('runs_scored', { ascending: false }).limit(20))
+    const bowlingQuery = applyTeamFilter(makeQuery().gt('innings_bowled', 0).order('wickets', { ascending: false }).limit(20))
+    const pointsQuery = applyTeamFilter(makeQuery().gt('total_points', 0).order('total_points', { ascending: false }).limit(20))
+    const averageQuery = applyTeamFilter(makeQuery().gte('innings_batted', 3).not('batting_average', 'is', null).order('batting_average', { ascending: false }).limit(10))
+    const economyQuery = applyTeamFilter(makeQuery().gte('overs_bowled', 10).not('bowling_economy', 'is', null).order('bowling_economy', { ascending: true }).limit(10))
+    const fieldingQuery = applyTeamFilter(
+      makeQuery()
+        .or('fielding_points.gt.0,catches.gt.0,stumpings.gt.0,run_outs.gt.0,drops.gt.0')
+        .order('fielding_points', { ascending: false })
+        .limit(20)
+    )
+
+    const { data: battingLeaderboard } = battingQuery ? await battingQuery : { data: [] }
+
+    const { data: bowlingLeaderboard } = bowlingQuery ? await bowlingQuery : { data: [] }
+
+    const { data: pointsLeaderboard } = pointsQuery ? await pointsQuery : { data: [] }
+
+    const { data: averageLeaderboard } = averageQuery ? await averageQuery : { data: [] }
+
+    const { data: economyLeaderboard } = economyQuery ? await economyQuery : { data: [] }
+
+    const { data: fieldingLeaderboard } = fieldingQuery ? await fieldingQuery : { data: [] }
 
     const allRows = [
       ...(battingLeaderboard || []),

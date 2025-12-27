@@ -4,6 +4,9 @@ export interface ScoringFormula {
   batting: BattingFormula
   bowling: BowlingFormula
   fielding: FieldingFormula
+  meta?: {
+    match_scope?: 'all' | 'league'
+  }
 }
 
 export interface BattingFormula {

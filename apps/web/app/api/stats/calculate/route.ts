@@ -69,9 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     const formula = config.formula_json
-
-    const normalizeName = (value: string) =>
-      value.toLowerCase().replace(/\s+/g, ' ').trim()
+    const matchScope = formula?.meta?.match_scope || 'all'
 
     // Get active season
     const { data: season } = await supabase
@@ -87,47 +85,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No active season found' }, { status: 404 })
     }
 
-    const { data: club } = await supabase
-      .from('clubs')
-      .select('name')
-      .eq('id', clubId)
-      .single()
-
-    const clubName = normalizeName(club?.name || '')
-
-    const { data: teams } = await supabase
+    await supabase
       .from('teams')
-      .select('id, name')
+      .select('id')
       .eq('club_id', clubId)
 
-    const teamNameById = new Map<string, string>()
-    teams?.forEach((team) => {
-      teamNameById.set(team.id, normalizeName(team.name || ''))
-    })
-
-    const inferBattingTeam = (value: string, opponentName: string, teamName: string) => {
-      const normalized = normalizeName(value)
-      if (normalized === 'home' || normalized === 'away') {
-        return normalized
-      }
-      if (normalized.includes('opposition') || normalized.includes('away')) {
-        return 'away'
-      }
-      if (normalized.includes('home')) {
-        return 'home'
-      }
-      if (
-        normalized.includes('brookweald') ||
-        (clubName && normalized.includes(clubName)) ||
-        (teamName && normalized.includes(teamName))
-      ) {
-        return 'home'
-      }
-      if (opponentName && normalized.includes(opponentName)) {
-        return 'away'
-      }
-      return normalized
-    }
 
     // Get all matches for the active season (or missing season_id)
     let { data: matches, error: matchesError } = await supabase
@@ -137,6 +99,7 @@ export async function POST(request: NextRequest) {
         team_id,
         opponent_name,
         match_date,
+        match_type,
         innings (
           id,
           innings_number,
@@ -168,7 +131,12 @@ export async function POST(request: NextRequest) {
         )
       `)
       .eq('club_id', clubId)
+      .eq('published', true)
       .or(`season_id.eq.${season.id},season_id.is.null`)
+
+    if (matchScope === 'league') {
+      matches = (matches || []).filter((match: any) => match.match_type === 'league')
+    }
 
     if (matchesError) {
       console.error('Matches fetch error (stats):', matchesError)
@@ -182,6 +150,7 @@ export async function POST(request: NextRequest) {
           team_id,
           opponent_name,
           match_date,
+          match_type,
           innings (
             id,
             innings_number,
@@ -214,12 +183,16 @@ export async function POST(request: NextRequest) {
         )
         `)
         .eq('club_id', clubId)
+        .eq('published', true)
 
       if (fallback.error) {
         console.error('Matches fallback error (stats):', fallback.error)
       }
 
       matches = (fallback.data as any) || []
+      if (matchScope === 'league') {
+        matches = (matches || []).filter((match: any) => match.match_type === 'league')
+      }
     }
 
     if (!matches || matches.length === 0) {
@@ -324,11 +297,100 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    const matchTeamIds = Array.from(new Set(matches.map((match: any) => match.team_id).filter(Boolean)))
+    const teamPlayerMap = new Map<string, Set<string>>()
+
+    if (matchTeamIds.length > 0) {
+      const { data: teamPlayers, error: teamPlayersError } = await supabase
+        .from('team_players')
+        .select('team_id, player_id')
+        .in('team_id', matchTeamIds)
+
+      if (teamPlayersError) {
+        console.error('Team players fetch error (stats):', teamPlayersError)
+      } else {
+        teamPlayers?.forEach((row) => {
+          if (!teamPlayerMap.has(row.team_id)) {
+            teamPlayerMap.set(row.team_id, new Set())
+          }
+          teamPlayerMap.get(row.team_id)!.add(row.player_id)
+        })
+      }
+    }
+
     // Calculate stats for each player
     const playerStats: Map<string, any> = new Map()
     const playerMatchPerformance: any[] = []
 
+    const createEmptyStats = (playerId: string) => ({
+      player_id: playerId,
+      season_id: season.id,
+      club_id: clubId,
+      matches_batted: 0,
+      innings_batted: 0,
+      not_outs: 0,
+      runs_scored: 0,
+      balls_faced: 0,
+      fours: 0,
+      sixes: 0,
+      highest_score: 0,
+      fifties: 0,
+      hundreds: 0,
+      ducks: 0,
+      matches_bowled: 0,
+      innings_bowled: 0,
+      overs_bowled: 0,
+      maidens: 0,
+      runs_conceded: 0,
+      wickets: 0,
+      best_bowling_wickets: 0,
+      best_bowling_runs: 999,
+      three_fors: 0,
+      five_fors: 0,
+      catches: 0,
+      stumpings: 0,
+      run_outs: 0,
+      drops: 0,
+      batting_points: 0,
+      bowling_points: 0,
+      fielding_points: 0,
+      total_points: 0,
+      match_performances: new Map()
+    })
+
+    const getOrInitStats = (playerId: string) => {
+      if (!playerStats.has(playerId)) {
+        playerStats.set(playerId, createEmptyStats(playerId))
+      }
+      return playerStats.get(playerId)!
+    }
+
+    const ensureMatchPerf = (stats: any, matchId: string) => {
+      if (!stats.match_performances.has(matchId)) {
+        stats.match_performances.set(matchId, {
+          runs: 0,
+          balls_faced: 0,
+          fours: 0,
+          sixes: 0,
+          wickets: 0,
+          overs_bowled: 0,
+          runs_conceded: 0,
+          maidens: 0,
+          catches: 0,
+          stumpings: 0,
+          run_outs: 0,
+          batting_points: 0,
+          bowling_points: 0,
+          fielding_points: 0
+        })
+      }
+      return stats.match_performances.get(matchId)
+    }
+
     for (const match of matches) {
+      const clubTeamPlayerIds = teamPlayerMap.get(match.team_id) || new Set<string>()
+      const playersInMatch = new Set<string>()
+
       const { data: fieldingCards, error: fieldingError } = await supabase
         .from('fielding_cards')
         .select('player_id, catches, stumpings, run_outs, drops, misfields')
@@ -347,6 +409,9 @@ export async function POST(request: NextRequest) {
       }>()
 
       fieldingCards?.forEach((card) => {
+        if (!clubTeamPlayerIds.has(card.player_id)) {
+          return
+        }
         fieldingByPlayer.set(card.player_id, {
           catches: card.catches || 0,
           stumpings: card.stumpings || 0,
@@ -356,62 +421,13 @@ export async function POST(request: NextRequest) {
         })
       })
 
-      const opponentName = normalizeName(match.opponent_name || '')
-      const teamName = teamNameById.get(match.team_id) || ''
-
       for (const innings of match.innings || []) {
-        const normalizedBattingTeam = inferBattingTeam(
-          innings.batting_team || '',
-          opponentName,
-          teamName
-        )
-        const battingTeam = normalizedBattingTeam === 'away' ? 'away' : 'home'
-        // Process batting cards (only for home team - our players)
-        if (battingTeam === 'home') {
-          for (const card of innings.batting_cards || []) {
-            const playerId = card.player_id
-            if (!playerId) continue
+        for (const card of innings.batting_cards || []) {
+          const playerId = card.player_id
+          if (!playerId || !clubTeamPlayerIds.has(playerId)) continue
 
-            // Initialize player stats if not exists
-            if (!playerStats.has(playerId)) {
-              playerStats.set(playerId, {
-                player_id: playerId,
-                season_id: season.id,
-                club_id: clubId,
-                matches_batted: 0,
-                innings_batted: 0,
-                not_outs: 0,
-                runs_scored: 0,
-                balls_faced: 0,
-                fours: 0,
-                sixes: 0,
-                highest_score: 0,
-                fifties: 0,
-                hundreds: 0,
-                ducks: 0,
-                matches_bowled: 0,
-                innings_bowled: 0,
-                overs_bowled: 0,
-                maidens: 0,
-                runs_conceded: 0,
-                wickets: 0,
-                best_bowling_wickets: 0,
-                best_bowling_runs: 999,
-                three_fors: 0,
-                five_fors: 0,
-                catches: 0,
-                stumpings: 0,
-                run_outs: 0,
-                drops: 0,
-                batting_points: 0,
-                bowling_points: 0,
-                fielding_points: 0,
-                total_points: 0,
-                match_performances: new Map()
-              })
-            }
-
-            const stats = playerStats.get(playerId)!
+          const stats = getOrInitStats(playerId)
+          playersInMatch.add(playerId)
 
             // Update batting stats
             stats.innings_batted++
@@ -438,78 +454,21 @@ export async function POST(request: NextRequest) {
             stats.batting_points += battingPoints.points
 
             // Track per-match performance
-            if (!stats.match_performances.has(match.id)) {
-              stats.match_performances.set(match.id, {
-                runs: 0,
-                balls_faced: 0,
-                fours: 0,
-                sixes: 0,
-                wickets: 0,
-                overs_bowled: 0,
-                runs_conceded: 0,
-                maidens: 0,
-                catches: 0,
-                stumpings: 0,
-                run_outs: 0,
-                batting_points: 0,
-                bowling_points: 0,
-                fielding_points: 0
-              })
-            }
-            const matchPerf = stats.match_performances.get(match.id)
-            matchPerf.runs += card.runs || 0
-            matchPerf.balls_faced += card.balls_faced || 0
-            matchPerf.fours += card.fours || 0
-            matchPerf.sixes += card.sixes || 0
-            matchPerf.batting_points += battingPoints.points
-          }
+          const matchPerf = ensureMatchPerf(stats, match.id)
+          matchPerf.runs += card.runs || 0
+          matchPerf.balls_faced += card.balls_faced || 0
+          matchPerf.fours += card.fours || 0
+          matchPerf.sixes += card.sixes || 0
+          matchPerf.batting_points += battingPoints.points
         }
 
-        // Process bowling cards (only for away team innings - our players bowling)
-        if (battingTeam === 'away') {
-          for (const card of innings.bowling_cards || []) {
-            const playerId = card.player_id
-            if (!playerId) continue
+        // Process bowling cards (our players only)
+        for (const card of innings.bowling_cards || []) {
+          const playerId = card.player_id
+          if (!playerId || !clubTeamPlayerIds.has(playerId)) continue
 
-            if (!playerStats.has(playerId)) {
-              playerStats.set(playerId, {
-                player_id: playerId,
-                season_id: season.id,
-                club_id: clubId,
-                matches_batted: 0,
-                innings_batted: 0,
-                not_outs: 0,
-                runs_scored: 0,
-                balls_faced: 0,
-                fours: 0,
-                sixes: 0,
-                highest_score: 0,
-                fifties: 0,
-                hundreds: 0,
-                ducks: 0,
-                matches_bowled: 0,
-                innings_bowled: 0,
-                overs_bowled: 0,
-                maidens: 0,
-                runs_conceded: 0,
-                wickets: 0,
-                best_bowling_wickets: 0,
-                best_bowling_runs: 999,
-                three_fors: 0,
-                five_fors: 0,
-                catches: 0,
-                stumpings: 0,
-                run_outs: 0,
-                drops: 0,
-                batting_points: 0,
-                bowling_points: 0,
-                fielding_points: 0,
-                total_points: 0,
-                match_performances: new Map()
-              })
-            }
-
-            const stats = playerStats.get(playerId)!
+          const stats = getOrInitStats(playerId)
+          playersInMatch.add(playerId)
 
             // Update bowling stats
             stats.innings_bowled++
@@ -539,31 +498,12 @@ export async function POST(request: NextRequest) {
             stats.bowling_points += bowlingPoints.points
 
             // Track per-match performance
-            if (!stats.match_performances.has(match.id)) {
-              stats.match_performances.set(match.id, {
-                runs: 0,
-                balls_faced: 0,
-                fours: 0,
-                sixes: 0,
-                wickets: 0,
-                overs_bowled: 0,
-                runs_conceded: 0,
-                maidens: 0,
-                catches: 0,
-                stumpings: 0,
-                run_outs: 0,
-                batting_points: 0,
-                bowling_points: 0,
-                fielding_points: 0
-              })
-            }
-            const matchPerf = stats.match_performances.get(match.id)
-            matchPerf.wickets += card.wickets || 0
-            matchPerf.overs_bowled += card.overs || 0
-            matchPerf.runs_conceded += card.runs_conceded || 0
-            matchPerf.maidens += card.maidens || 0
-            matchPerf.bowling_points += bowlingPoints.points
-          }
+          const matchPerf = ensureMatchPerf(stats, match.id)
+          matchPerf.wickets += card.wickets || 0
+          matchPerf.overs_bowled += card.overs || 0
+          matchPerf.runs_conceded += card.runs_conceded || 0
+          matchPerf.maidens += card.maidens || 0
+          matchPerf.bowling_points += bowlingPoints.points
         }
 
         // Process fielding cards
@@ -571,45 +511,9 @@ export async function POST(request: NextRequest) {
 
       // Process fielding cards (match-level)
       for (const [playerId, card] of fieldingByPlayer.entries()) {
-        if (!playerStats.has(playerId)) {
-          playerStats.set(playerId, {
-            player_id: playerId,
-            season_id: season.id,
-            club_id: clubId,
-            matches_batted: 0,
-            innings_batted: 0,
-            not_outs: 0,
-            runs_scored: 0,
-            balls_faced: 0,
-            fours: 0,
-            sixes: 0,
-            highest_score: 0,
-            fifties: 0,
-            hundreds: 0,
-            ducks: 0,
-            matches_bowled: 0,
-            innings_bowled: 0,
-            overs_bowled: 0,
-            maidens: 0,
-            runs_conceded: 0,
-            wickets: 0,
-            best_bowling_wickets: 0,
-            best_bowling_runs: 999,
-            three_fors: 0,
-            five_fors: 0,
-            catches: 0,
-            stumpings: 0,
-            run_outs: 0,
-            drops: 0,
-            batting_points: 0,
-            bowling_points: 0,
-            fielding_points: 0,
-            total_points: 0,
-            match_performances: new Map()
-          })
-        }
-
-        const stats = playerStats.get(playerId)!
+        if (!clubTeamPlayerIds.has(playerId)) continue
+        const stats = getOrInitStats(playerId)
+        playersInMatch.add(playerId)
         stats.catches += card.catches
         stats.stumpings += card.stumpings
         stats.run_outs += card.runouts
@@ -625,26 +529,7 @@ export async function POST(request: NextRequest) {
 
         stats.fielding_points += fieldingPoints.points
 
-        if (!stats.match_performances.has(match.id)) {
-          stats.match_performances.set(match.id, {
-            runs: 0,
-            balls_faced: 0,
-            fours: 0,
-            sixes: 0,
-            wickets: 0,
-            overs_bowled: 0,
-            runs_conceded: 0,
-            maidens: 0,
-            catches: 0,
-            stumpings: 0,
-            run_outs: 0,
-            batting_points: 0,
-            bowling_points: 0,
-            fielding_points: 0
-          })
-        }
-
-        const matchPerf = stats.match_performances.get(match.id)
+        const matchPerf = ensureMatchPerf(stats, match.id)
         matchPerf.catches += card.catches
         matchPerf.stumpings += card.stumpings
         matchPerf.run_outs += card.runouts
@@ -652,15 +537,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Track unique matches played
-      for (const [playerId, stats] of playerStats) {
+      for (const playerId of playersInMatch) {
+        const stats = playerStats.get(playerId)
+        if (!stats) continue
         const matchPerf = stats.match_performances.get(match.id)
-        if (matchPerf) {
-          if (matchPerf.runs > 0 || matchPerf.balls_faced > 0) {
-            stats.matches_batted = (stats.matches_batted || 0) + 1
-          }
-          if (matchPerf.wickets > 0 || matchPerf.overs_bowled > 0) {
-            stats.matches_bowled = (stats.matches_bowled || 0) + 1
-          }
+        if (!matchPerf) continue
+
+        stats.matches_batted = (stats.matches_batted || 0) + 1
+        if (matchPerf.wickets > 0 || matchPerf.overs_bowled > 0) {
+          stats.matches_bowled = (stats.matches_bowled || 0) + 1
         }
       }
     }

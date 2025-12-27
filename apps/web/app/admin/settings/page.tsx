@@ -32,6 +32,12 @@ export default function SettingsPage() {
       if (response.ok) {
         const data = await response.json();
         setClub(data.club);
+        return;
+      }
+      const fallback = await fetch('/api/onboarding/status');
+      if (fallback.ok) {
+        const data = await fallback.json();
+        setClub(data.club);
       }
     } catch (error) {
       console.error('Failed to fetch club info:', error);
@@ -168,6 +174,27 @@ export default function SettingsPage() {
           description: 'Enter match data without PDF',
           href: '/admin/matches/new',
           adminOnly: false,
+        },
+      ],
+    },
+    {
+      title: 'Integrations',
+      description: 'Connect external services and platforms',
+      icon: '🔌',
+      items: [
+        {
+          title: 'Play Cricket Setup',
+          description: 'Configure Play Cricket API integration',
+          href: '/admin/play-cricket/setup',
+          badge: 'New',
+          badgeColor: 'bg-blue-100 text-blue-800',
+          adminOnly: true,
+        },
+        {
+          title: 'Play Cricket Import',
+          description: 'Import matches from Play Cricket API',
+          href: '/admin/play-cricket',
+          adminOnly: true,
         },
       ],
     },

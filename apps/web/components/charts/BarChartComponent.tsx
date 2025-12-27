@@ -44,6 +44,7 @@ export function BarChartComponent({
   yAxisLabel,
   layout = 'horizontal',
 }: BarChartComponentProps) {
+  const axisFontSize = 13;
   return (
     <ChartContainer height={height} title={title} description={description}>
       <BarChart
@@ -57,12 +58,15 @@ export function BarChartComponent({
             <XAxis
               dataKey={xKey}
               stroke="#6b7280"
-              fontSize={12}
+              fontSize={axisFontSize}
+              tickMargin={8}
+              minTickGap={12}
               label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined}
             />
             <YAxis
               stroke="#6b7280"
-              fontSize={12}
+              fontSize={axisFontSize}
+              tickMargin={8}
               label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
             />
           </>
@@ -71,14 +75,18 @@ export function BarChartComponent({
             <XAxis
               type="number"
               stroke="#6b7280"
-              fontSize={12}
+              fontSize={axisFontSize}
+              tickMargin={8}
+              minTickGap={12}
               label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined}
             />
             <YAxis
               type="category"
               dataKey={xKey}
               stroke="#6b7280"
-              fontSize={12}
+              fontSize={axisFontSize}
+              tickMargin={8}
+              width={140}
               label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
             />
           </>

@@ -184,12 +184,12 @@ export async function GET(
     const matchPlayerIds = new Set<string>()
     inningsWithPlayers.forEach((innings: any) => {
       ;(innings.batting_cards || []).forEach((card: any) => {
-        if (card.player_id && teamPlayerIds.has(card.player_id)) {
+        if (card.player_id) {
           matchPlayerIds.add(card.player_id)
         }
       })
       ;(innings.bowling_cards || []).forEach((card: any) => {
-        if (card.player_id && teamPlayerIds.has(card.player_id)) {
+        if (card.player_id) {
           matchPlayerIds.add(card.player_id)
         }
       })
@@ -203,8 +203,15 @@ export async function GET(
       `)
       .eq('match_id', match.id)
 
+    ;(fieldingCards || []).forEach((card: any) => {
+      if (card.player_id) {
+        matchPlayerIds.add(card.player_id)
+      }
+    })
+
+    const rosterIds = matchPlayerIds.size > 0 ? matchPlayerIds : teamPlayerIds
     const existingFieldingIds = new Set((fieldingCards || []).map((card: any) => card.player_id))
-    const missingFieldingRows = Array.from(matchPlayerIds)
+    const missingFieldingRows = Array.from(rosterIds)
       .filter((playerId) => !existingFieldingIds.has(playerId))
       .map((playerId: any) => ({
         match_id: match.id,
@@ -246,10 +253,15 @@ export async function GET(
     }
 
     const filteredFieldingCards = fieldingData
-      .filter((card: any) => matchPlayerIds.has(card.player_id))
+      .filter((card: any) => rosterIds.has(card.player_id))
       .map((card: any) => ({
         ...card,
-        runouts: card.runouts ?? card.run_outs ?? 0
+        runouts: card.runouts ?? card.run_outs ?? 0,
+        run_outs: card.run_outs ?? card.runouts ?? 0,
+        catches: card.catches ?? 0,
+        stumpings: card.stumpings ?? 0,
+        drops: card.drops ?? 0,
+        misfields: card.misfields ?? 0
       }))
 
     const inningsWithAttribution = (inningsWithPlayers || []).map((innings: any) => ({
@@ -359,6 +371,39 @@ export async function PATCH(
       throw new Error(matchError.message)
     }
 
+    if (body.published) {
+      const { data: matchRow } = await supabase
+        .from('matches')
+        .select('team_id')
+        .eq('id', id)
+        .eq('club_id', userRole.club_id)
+        .single()
+
+      const rosterIds = new Set<string>()
+      for (const innings of body.innings || []) {
+        for (const card of innings.batting_cards || []) {
+          if (card.player_id) {
+            rosterIds.add(card.player_id)
+          }
+        }
+        for (const card of innings.bowling_cards || []) {
+          if (card.player_id) {
+            rosterIds.add(card.player_id)
+          }
+        }
+      }
+
+      if (matchRow?.team_id && rosterIds.size > 0) {
+        const rosterRows = Array.from(rosterIds).map((playerId) => ({
+          team_id: matchRow.team_id,
+          player_id: playerId
+        }))
+        await supabase
+          .from('team_players')
+          .upsert(rosterRows, { onConflict: 'team_id,player_id', ignoreDuplicates: true })
+      }
+    }
+
     // Update innings
     for (const innings of body.innings) {
       const { error: inningsError } = await supabase
@@ -450,12 +495,16 @@ export async function PATCH(
 
       for (const card of body.fielding_cards) {
         const counts = fieldingCounts.get(card.player_id) || { catches: 0, stumpings: 0, runouts: 0 }
+        const nextCatches = typeof card.catches === 'number' ? card.catches : counts.catches
+        const nextStumpings = typeof card.stumpings === 'number' ? card.stumpings : counts.stumpings
+        const nextRunOuts = typeof card.run_outs === 'number' ? card.run_outs : counts.runouts
+
         const { error: fieldingError } = await supabase
           .from('fielding_cards')
           .update({
-            catches: counts.catches,
-            stumpings: counts.stumpings,
-            run_outs: counts.runouts,
+            catches: nextCatches,
+            stumpings: nextStumpings,
+            run_outs: nextRunOuts,
             drops: card.drops,
             misfields: card.misfields
           })
@@ -513,6 +562,22 @@ export async function DELETE(
 
     if (deleteError) {
       throw new Error(deleteError.message)
+    }
+
+    const { count: remainingMatches } = await supabase
+      .from('matches')
+      .select('id', { count: 'exact', head: true })
+      .eq('club_id', userRole.club_id)
+
+    if ((remainingMatches || 0) === 0) {
+      const { error: deletePlayersError } = await supabase
+        .from('players')
+        .delete()
+        .eq('club_id', userRole.club_id)
+
+      if (deletePlayersError) {
+        throw new Error(deletePlayersError.message)
+      }
     }
 
     try {

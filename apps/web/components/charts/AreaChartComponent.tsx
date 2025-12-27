@@ -42,6 +42,7 @@ export function AreaChartComponent({
   xAxisLabel,
   yAxisLabel,
 }: AreaChartComponentProps) {
+  const axisFontSize = 13;
   return (
     <ChartContainer height={height} title={title} description={description}>
       <AreaChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -49,12 +50,15 @@ export function AreaChartComponent({
         <XAxis
           dataKey={xKey}
           stroke="#6b7280"
-          fontSize={12}
+          fontSize={axisFontSize}
+          tickMargin={8}
+          minTickGap={12}
           label={xAxisLabel ? { value: xAxisLabel, position: 'insideBottom', offset: -5 } : undefined}
         />
         <YAxis
           stroke="#6b7280"
-          fontSize={12}
+          fontSize={axisFontSize}
+          tickMargin={8}
           label={yAxisLabel ? { value: yAxisLabel, angle: -90, position: 'insideLeft' } : undefined}
         />
         <Tooltip

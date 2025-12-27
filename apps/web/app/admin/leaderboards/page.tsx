@@ -38,6 +38,11 @@ interface LeaderboardEntry {
   players: Player
 }
 
+interface Team {
+  id: string
+  name: string
+}
+
 export default function LeaderboardsPage() {
   const [activeTab, setActiveTab] = useState<'batting' | 'bowling' | 'points' | 'fielding'>('batting')
   const [battingLeaders, setBattingLeaders] = useState<LeaderboardEntry[]>([])
@@ -47,6 +52,8 @@ export default function LeaderboardsPage() {
   const [economyLeaders, setEconomyLeaders] = useState<LeaderboardEntry[]>([])
   const [fieldingLeaders, setFieldingLeaders] = useState<LeaderboardEntry[]>([])
   const [activeSeason, setActiveSeason] = useState<{ id: string; name: string } | null>(null)
+  const [teams, setTeams] = useState<Team[]>([])
+  const [teamFilter, setTeamFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [recalculating, setRecalculating] = useState(false)
@@ -58,12 +65,37 @@ export default function LeaderboardsPage() {
     'Unknown Player'
 
   useEffect(() => {
-    fetchLeaderboards()
+    fetchLeaderboards(teamFilter)
+  }, [teamFilter])
+
+  useEffect(() => {
+    fetchTeams()
   }, [])
 
-  const fetchLeaderboards = async () => {
+  const fetchTeams = async () => {
     try {
-      const response = await fetch('/api/leaderboards')
+      const response = await fetch('/api/teams')
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch teams')
+      }
+
+      setTeams(data.teams || [])
+    } catch (err: any) {
+      console.error('Failed to load teams:', err.message)
+    }
+  }
+
+  const fetchLeaderboards = async (teamId = 'all') => {
+    setLoading(true)
+    setError(null)
+    try {
+      const params = new URLSearchParams()
+      if (teamId && teamId !== 'all') {
+        params.set('teamId', teamId)
+      }
+      const response = await fetch(`/api/leaderboards${params.toString() ? `?${params.toString()}` : ''}`)
       const data = await response.json()
 
       if (!response.ok) {
@@ -209,7 +241,22 @@ export default function LeaderboardsPage() {
               {activeSeason ? `${activeSeason.name} - ` : ''}Top performers across all disciplines
             </p>
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div className={styles.headerActions}>
+            <label className={styles.filterControl}>
+              <span className={styles.filterLabel}>Team</span>
+              <select
+                className={styles.filterSelect}
+                value={teamFilter}
+                onChange={(event) => setTeamFilter(event.target.value)}
+              >
+                <option value="all">All teams</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>
+                    {team.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button
               className={styles.recalcButton}
               onClick={handleExport}
@@ -273,7 +320,7 @@ export default function LeaderboardsPage() {
                     data={battingChartData}
                     xKey="player"
                     bars={[{ dataKey: 'runs', name: 'Runs', color: '#0ea5e9' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -289,7 +336,7 @@ export default function LeaderboardsPage() {
                       { dataKey: 'average', name: 'Average', color: '#8b5cf6' },
                       { dataKey: 'strikeRate', name: 'Strike Rate', color: '#f97316' }
                     ]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend
                   />
@@ -301,7 +348,7 @@ export default function LeaderboardsPage() {
                     data={battingChartData}
                     xKey="player"
                     bars={[{ dataKey: 'highestScore', name: 'Highest Score', color: '#22c55e' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -409,7 +456,7 @@ export default function LeaderboardsPage() {
                     data={bowlingChartData}
                     xKey="player"
                     bars={[{ dataKey: 'wickets', name: 'Wickets', color: '#10b981' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -425,7 +472,7 @@ export default function LeaderboardsPage() {
                       { dataKey: 'average', name: 'Average', color: '#0ea5e9' },
                       { dataKey: 'economy', name: 'Economy', color: '#f97316' }
                     ]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend
                   />
@@ -437,7 +484,7 @@ export default function LeaderboardsPage() {
                     data={bowlingChartData}
                     xKey="player"
                     bars={[{ dataKey: 'overs', name: 'Overs', color: '#6366f1' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -545,7 +592,7 @@ export default function LeaderboardsPage() {
                     data={pointsChartData}
                     xKey="player"
                     bars={[{ dataKey: 'points', name: 'Points', color: '#7c3aed' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -559,7 +606,7 @@ export default function LeaderboardsPage() {
                     xKey="runs"
                     yKey="wickets"
                     zKey="points"
-                    height={220}
+                    height={260}
                     xAxisLabel="Runs"
                     yAxisLabel="Wickets"
                     color="#0ea5e9"
@@ -572,7 +619,7 @@ export default function LeaderboardsPage() {
                     data={pointsChartData}
                     xKey="player"
                     bars={[{ dataKey: 'runs', name: 'Runs', color: '#22c55e' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -639,7 +686,7 @@ export default function LeaderboardsPage() {
                     data={fieldingChartData}
                     xKey="player"
                     bars={[{ dataKey: 'fieldingPoints', name: 'Fielding Points', color: '#f59e0b' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"
@@ -655,7 +702,7 @@ export default function LeaderboardsPage() {
                       { dataKey: 'catches', name: 'Catches', color: '#2563eb', stackId: '1' },
                       { dataKey: 'runOuts', name: 'Run Outs', color: '#10b981', stackId: '1' }
                     ]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend
                     layout="vertical"
@@ -668,7 +715,7 @@ export default function LeaderboardsPage() {
                     data={fieldingChartData}
                     xKey="player"
                     bars={[{ dataKey: 'drops', name: 'Drops', color: '#ef4444' }]}
-                    height={220}
+                    height={260}
                     showGrid
                     showLegend={false}
                     layout="vertical"

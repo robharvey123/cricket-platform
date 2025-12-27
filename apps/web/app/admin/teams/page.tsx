@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import Link from 'next/link'
 import styles from './page.module.css'
 
@@ -293,8 +293,8 @@ export default function TeamsPage() {
                   </thead>
                   <tbody>
                     {teams.map((team) => (
-                      <>
-                        <tr key={team.id}>
+                      <Fragment key={team.id}>
+                        <tr>
                           <td>
                             <strong>{team.name}</strong>
                           </td>
@@ -383,7 +383,7 @@ export default function TeamsPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>

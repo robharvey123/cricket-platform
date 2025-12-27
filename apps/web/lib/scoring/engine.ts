@@ -194,6 +194,9 @@ export function calcTotalPoints(
  * Default scoring formula (Brookweald CC standard)
  */
 export const DEFAULT_FORMULA: ScoringFormula = {
+  meta: {
+    match_scope: 'all',
+  },
   batting: {
     per_run: 1,
     boundary_4: 1,
